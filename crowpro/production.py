@@ -24,19 +24,22 @@ DATABASES = {
 CORS_ALLOWED_ORIGINS = [
     os.getenv("DEVELOPMENT_HOST"),
     "https://crowcrows-web-besoft33s-projects.vercel.app",
-    "https://www.santosh-bhattarai.com.np"
+    "https://www.santosh-bhattarai.com.np",
+    "https://santosh-bhattarai.com.np"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     os.getenv("DEVELOPMENT_HOST"),
     "https://crowcrows-web-besoft33s-projects.vercel.app",
-    "https://www.santosh-bhattarai.com.np"
+    "https://www.santosh-bhattarai.com.np",
+    "https://santosh-bhattarai.com.np"
 ]
 
 CORS_ORIGINS_WHITELIST = [
     os.getenv("DEVELOPMENT_HOST"),
     "https://crowcrows-web-besoft33s-projects.vercel.app",
-    "https://www.santosh-bhattarai.com.np"
+    "https://www.santosh-bhattarai.com.np",
+    "https://santosh-bhattarai.com.np"
 ]
 
 CORS_ALLOW_CREDENTIALS = True

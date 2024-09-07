@@ -10,7 +10,7 @@
       "src": "build_files.sh",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "crowpro/staticfiles"
+        "distDir": "staticfiles"
       }
     }
   ],
@@ -20,7 +20,7 @@
       "headers": {
         "cache-control": "max-age=31536000, immutable"
       },
-      "dest": "crowpro/staticfiles/$1"
+      "dest": "staticfiles/$1"
     },
     {
       "src": "/(.*)",
