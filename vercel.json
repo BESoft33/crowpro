@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "crowcrows/wsgi.py",
+      "use": "@vercel/python",
+      "config": { "maxLambdaSize": "15mb", "runtime": "python3.9" }
+    },
+    {
+      "src": "build_files.sh",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "crowcrows/staticfiles"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "headers": {
+        "cache-control": "max-age=31536000, immutable"
+      },
+      "dest": "crowcrows/staticfiles/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "crowcrows/wsgi.py"
+    }
+  ]
+}
