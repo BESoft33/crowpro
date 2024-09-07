@@ -9,39 +9,36 @@ SECRET_KEY = "".join(random.choices(string.ascii_letters +
                                     string.digits,
                                     k=20))
 
-ALLOWED_HOSTS = ['.vercel.app', 'now.sh']
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': os.getenv("POSTGRES_DATABASE"),
-#         'USER': os.getenv("POSTGRES_USER"),
-#         'PASSWORD': os.getenv("POSTGRES_PASSWORD"),
-#         'HOST': os.getenv("POSTGRES_HOST"),
-#         'PORT': os.getenv("POSTGRES_PORT"),
-#     }
-# }
+ALLOWED_HOSTS = ['.vercel.app', 'now.sh', '127.0.0.1']
 
 DATABASES = {
-    'default': dj_database_url.config(default=os.getenv("POSTGRES_URL"))
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.getenv("POSTGRES_DATABASE"),
+        'USER': os.getenv("POSTGRES_USER"),
+        'PASSWORD': os.getenv("POSTGRES_PASSWORD"),
+        'HOST': os.getenv("POSTGRES_HOST"),
+        # 'PORT': os.getenv("POSTGRES_PORT"),
+    }
 }
 
+# DATABASES = {
+#     'default': dj_database_url.config(default=os.getenv("POSTGRES_URL"))
+# }
+
 CORS_ALLOWED_ORIGINS = [
-    os.getenv("DEVELOPMENT_HOST"),
     "https://crowcrows-web-besoft33s-projects.vercel.app",
     "https://www.santosh-bhattarai.com.np",
     "https://santosh-bhattarai.com.np"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    os.getenv("DEVELOPMENT_HOST"),
     "https://crowcrows-web-besoft33s-projects.vercel.app",
     "https://www.santosh-bhattarai.com.np",
     "https://santosh-bhattarai.com.np"
 ]
 
 CORS_ORIGINS_WHITELIST = [
-    os.getenv("DEVELOPMENT_HOST"),
     "https://crowcrows-web-besoft33s-projects.vercel.app",
     "https://www.santosh-bhattarai.com.np",
     "https://santosh-bhattarai.com.np"
