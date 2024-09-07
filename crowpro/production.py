@@ -2,6 +2,7 @@ import random
 import string
 import os
 from dotenv import load_dotenv
+import dj_database_url
 
 load_dotenv()
 SECRET_KEY = "".join(random.choices(string.ascii_letters +
@@ -10,15 +11,19 @@ SECRET_KEY = "".join(random.choices(string.ascii_letters +
 
 ALLOWED_HOSTS = ['.vercel.app', 'now.sh']
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': os.getenv("POSTGRES_DATABASE"),
+#         'USER': os.getenv("POSTGRES_USER"),
+#         'PASSWORD': os.getenv("POSTGRES_PASSWORD"),
+#         'HOST': os.getenv("POSTGRES_HOST"),
+#         'PORT': os.getenv("POSTGRES_PORT"),
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.getenv("POSTGRES_DATABASE"),
-        'USER': os.getenv("POSTGRES_USER"),
-        'PASSWORD': os.getenv("POSTGRES_PASSWORD"),
-        'HOST': os.getenv("POSTGRES_HOST"),
-        'PORT': os.getenv("POSTGRES_PORT"),
-    }
+    'default': dj_database_url.config(default=os.getenv("POSTGRES_URL"))
 }
 
 CORS_ALLOWED_ORIGINS = [
