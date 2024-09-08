@@ -145,17 +145,18 @@ USE_I18N = True
 
 USE_TZ = True
 
+
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles' / 'static'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Must match Vercel `distDir`
 
-HIGHLIGHT_URL = 'highlight/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # Include your local static directory
+]
 
+# Media files
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, "static"),
-)
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
