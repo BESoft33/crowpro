@@ -1,6 +1,8 @@
 echo "Installing dependencies"
 python3.9 -m pip install -r requirements.txt
 
+mkdir "static"
+
 echo "Serving staticfiles"
 python3.9 manage.py collectstatic --noinput
 
