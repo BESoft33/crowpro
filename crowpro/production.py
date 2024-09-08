@@ -11,19 +11,19 @@ SECRET_KEY = "".join(random.choices(string.ascii_letters +
 
 ALLOWED_HOSTS = ['.vercel.app', 'now.sh', '127.0.0.1']
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv("POSTGRES_DATABASE"),
-        'USER': os.getenv("POSTGRES_USER"),
-        'PASSWORD': os.getenv("POSTGRES_PASSWORD"),
-        'HOST': os.getenv("POSTGRES_HOST"),
-    }
-}
-
 # DATABASES = {
-#     'default': dj_database_url.config(default=os.getenv("POSTGRES_URL"))
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv("POSTGRES_DATABASE"),
+#         'USER': os.getenv("POSTGRES_USER"),
+#         'PASSWORD': os.getenv("POSTGRES_PASSWORD"),
+#         'HOST': os.getenv("POSTGRES_HOST"),
+#     }
 # }
+
+DATABASES = {
+    'default': dj_database_url.config(default=os.getenv("DB_URL"))
+}
 
 CORS_ALLOWED_ORIGINS = [
     "https://crowcrows-web-besoft33s-projects.vercel.app",
