@@ -9,33 +9,67 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-import os
 from pathlib import Path
 from . import ckeditor_config as ck
 from datetime import timedelta
 from .production import *
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-print(BASE_DIR)
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
 
-SECRET_KEY = SECRET_KEY
+DROPBOX_APP_KEY = os.getenv("DROPBOX_APP_KEY")
+DROPBOX_APP_SECRET = os.getenv("DROPBOX_APP_SECRET")
+DROPBOX_OAUTH2_REFRESH_TOKEN = os.getenv("DROPBOX_OAUTH2_REFRESH_TOKEN")
 
-ALLOWED_HOSTS = ALLOWED_HOSTS
+DEBUG = True
 
-DATABASES = DATABASES
+if DEBUG:
+    SECRET_KEY = 'django-insecure-ww^e-y3ia1t$!&t%108!_q+0^rl1vj*-stv_t)p8cgxdc@vyjx'
+    ALLOWED_HOSTS = []
+    CORS_ALLOWED_ORIGINS = [
+        'http://127.0.0.1:8000',
+        'http://127.0.0.1:3000',
+        'http://localhost:3000'
 
-CORS_ALLOWED_ORIGINS = CORS_ALLOWED_ORIGINS
+    ]
+    CSRF_TRUSTED_ORIGINS = [
+        'http://127.0.0.1:8000',
+        'http://127.0.0.1:3000',
+        'http://localhost:3000'
 
-CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS
+    ]
+    CORS_ORIGINS_WHITELIST = [
+        'http://127.0.0.1:8000',
+        'http://127.0.0.1:3000',
+        'http://localhost:3000'
 
-CORS_ORIGINS_WHITELIST = CORS_ORIGINS_WHITELIST
+    ]
 
-CORS_ALLOW_CREDENTIALS = True
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'crowpro',
+            'USER': 'mysqluser',
+            'PASSWORD': 'mysqlpassword',
+            'HOST': 'db',
+            'PORT': '3306',
+        }
+    }
 
-STORAGES = STORAGES
+    CORS_ALLOW_CREDENTIALS = True
+else:
+    SECRET_KEY = SECRET_KEY
+    ALLOWED_HOSTS = ALLOWED_HOSTS
+    DATABASES = DATABASES
+    CORS_ALLOWED_ORIGINS = CORS_ALLOWED_ORIGINS
+    CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS
+    CORS_ORIGINS_WHITELIST = CORS_ORIGINS_WHITELIST
+    CORS_ALLOW_CREDENTIALS = True
+    STORAGES = STORAGES
 
 CORS_ALLOW_HEADERS = [
     'accept',
@@ -66,6 +100,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'django_filters',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -146,6 +181,14 @@ USE_I18N = True
 USE_TZ = True
 
 
+# Directory in dropbox to store media files
+DROPBOX_ROOT_PATH = '../media/'
+
+DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
+
+# URL configuration for serving media files
+MEDIA_URL = 'https://www.dropbox.com/home/media/'
+
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Must match Vercel `distDir`
@@ -153,10 +196,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Must match Vercel `distDi
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),  # Include your local static directory
 ]
-
-# Media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -167,4 +206,5 @@ AUTH_USER_MODEL = 'users.User'
 CK_EDITOR_5_UPLOAD_FILE_VIEW_NAME = "upload_file"
 CKEDITOR_5_CONFIGS = ck.CKEDITOR_5_CONFIGS
 CKEDITOR_5_FILE_UPLOAD_PERMISSION = ck.CKEDITOR_5_FILE_UPLOAD_PERMISSION
-CKEDITOR_5_FILE_STORAGES = ck.STORAGES
+CKEDITOR_5_FILE_STORAGES = STORAGES
+
