@@ -25,7 +25,7 @@ DROPBOX_APP_KEY = os.getenv("DROPBOX_APP_KEY")
 DROPBOX_APP_SECRET = os.getenv("DROPBOX_APP_SECRET")
 DROPBOX_OAUTH2_REFRESH_TOKEN = os.getenv("DROPBOX_OAUTH2_REFRESH_TOKEN")
 
-DEBUG = bool(os.getenv("DEBUG", True))
+DEBUG = os.getenv("DEBUG", False) == "True"
 
 if DEBUG:
     print("--------------------Running in development mode-------------------------")
