@@ -46,7 +46,7 @@ CORS_ORIGINS_WHITELIST = [
 CORS_ALLOW_CREDENTIALS = True
 
 STORAGES = {
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    "default": {
+        "BACKEND": "storages.backends.dropbox.DropboxStorage",
     },
 }
