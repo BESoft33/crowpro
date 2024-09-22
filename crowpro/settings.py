@@ -25,9 +25,10 @@ DROPBOX_APP_KEY = os.getenv("DROPBOX_APP_KEY")
 DROPBOX_APP_SECRET = os.getenv("DROPBOX_APP_SECRET")
 DROPBOX_OAUTH2_REFRESH_TOKEN = os.getenv("DROPBOX_OAUTH2_REFRESH_TOKEN")
 
-DEBUG = os.getenv("DEBUG")
+DEBUG = bool(os.getenv("DEBUG", True))
 
 if DEBUG:
+    print("--------------------Running in development mode-------------------------")
     SECRET_KEY = 'django-insecure-ww^e-y3ia1t$!&t%108!_q+0^rl1vj*-stv_t)p8cgxdc@vyjx'
     ALLOWED_HOSTS = []
     CORS_ALLOWED_ORIGINS = [
@@ -62,6 +63,7 @@ if DEBUG:
 
     CORS_ALLOW_CREDENTIALS = True
 else:
+    print("--------------------Running in production mode-------------------------")
     SECRET_KEY = SECRET_KEY
     ALLOWED_HOSTS = ALLOWED_HOSTS
     DATABASES = DATABASES
