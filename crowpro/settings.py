@@ -25,7 +25,7 @@ DROPBOX_APP_KEY = os.getenv("DROPBOX_APP_KEY")
 DROPBOX_APP_SECRET = os.getenv("DROPBOX_APP_SECRET")
 DROPBOX_OAUTH2_REFRESH_TOKEN = os.getenv("DROPBOX_OAUTH2_REFRESH_TOKEN")
 
-DEBUG = True
+DEBUG = os.getenv("DEBUG")
 
 if DEBUG:
     SECRET_KEY = 'django-insecure-ww^e-y3ia1t$!&t%108!_q+0^rl1vj*-stv_t)p8cgxdc@vyjx'
