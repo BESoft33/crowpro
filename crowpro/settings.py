@@ -17,6 +17,10 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,9 +28,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DROPBOX_APP_KEY = os.getenv("DROPBOX_APP_KEY")
 DROPBOX_APP_SECRET = os.getenv("DROPBOX_APP_SECRET")
 DROPBOX_OAUTH2_REFRESH_TOKEN = os.getenv("DROPBOX_OAUTH2_REFRESH_TOKEN")
+DROPBOX_OAUTH2_TOKEN = os.getenv("DROPBOX_OAUTH2_TOKEN")
 
 DEBUG = os.getenv("DEBUG", False) == "True"
-
 if DEBUG:
     print("--------------------Running in development mode-------------------------")
     SECRET_KEY = 'django-insecure-ww^e-y3ia1t$!&t%108!_q+0^rl1vj*-stv_t)p8cgxdc@vyjx'
@@ -50,14 +54,21 @@ if DEBUG:
 
     ]
 
+    # DATABASES = {
+    #     'default': {
+    #         'ENGINE': 'django.db.backends.mysql',
+    #         'NAME': 'crowpro',
+    #         'USER': 'mysqluser',
+    #         'PASSWORD': 'mysqlpassword',
+    #         'HOST': 'db',
+    #         'PORT': '3306',
+    #     }
+    # }
+
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'crowpro',
-            'USER': 'mysqluser',
-            'PASSWORD': 'mysqlpassword',
-            'HOST': 'db',
-            'PORT': '3306',
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 
@@ -103,6 +114,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'django_filters',
     'storages',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -142,6 +154,7 @@ WSGI_APPLICATION = 'crowpro.wsgi.application'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -191,13 +204,19 @@ DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
 # URL configuration for serving media files
 MEDIA_URL = 'https://www.dropbox.com/home/media/'
 
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Must match Vercel `distDir`
+# Directory in dropbox to store media files
+# DROPBOX_ROOT_PATH = '/Apps/crowpro/'
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),  # Include your local static directory
-]
+# DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
+DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
+# STATICFILES_STORAGE = 'storages.backends.dropbox.DropboxStorage'
+STATICFILES_STORAGE = 'storages.backends.dropbox.DropboxStorage'
+
+
+# URL configuration for serving media files
+# MEDIA_URL = 'https://www.dropbox.com/home/media/'
+# STATIC_URL = 'https://www.dropbox.com/home/staticfiles/'
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -205,8 +224,7 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 AUTH_USER_MODEL = 'users.User'
 
-CK_EDITOR_5_UPLOAD_FILE_VIEW_NAME = "upload_file"
+# CK_EDITOR_5_UPLOAD_FILE_VIEW_NAME = "upload_file"
 CKEDITOR_5_CONFIGS = ck.CKEDITOR_5_CONFIGS
 CKEDITOR_5_FILE_UPLOAD_PERMISSION = ck.CKEDITOR_5_FILE_UPLOAD_PERMISSION
 CKEDITOR_5_FILE_STORAGES = STORAGES
-
