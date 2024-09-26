@@ -6,3 +6,7 @@ venv
 *.log
 .env
 images
+media
+uploads
+db.sqlite3
+staticfiles
