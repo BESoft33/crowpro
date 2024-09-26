@@ -1,0 +1,24 @@
+{% extends 'base/index.html' %}
+{% block title %} Read{% endblock title %}
+<div class="article">  
+    {% block content %}  
+        {{ article.published_on }}<hr/>
+        <div class="d-flex  justify-content-between">
+
+            <div class="d-flex flex-column col-2">Ad Section</div>
+
+            <div class="d-flex flex-column col-8">
+                <h2 class="article-title" >
+                    <span style="font-family: Georgia, serif; font-size: 36px;">{{article.title}}</span>
+                </h2>    
+                <article class="col">
+                    {{article.content | safe}}
+                </article>
+            </div>
+
+            <div class="d-flex flex-column col-2">Ad Section</div>
+
+        </div>
+
+    {% endblock content %}
+</div>

@@ -1,0 +1,14 @@
+{% extends '../base/index.html' %}
+{% block articles %}
+  {% if message %}
+    <p>{{ message }}</p>
+  {% endif %}
+  {% if form %}
+  <form method="POST">
+    {% csrf_token %}
+    {{ from.media }}
+    {{ form.as_div }}
+    <input type="submit" vale="Submit" />
+  </form>
+  {% endif %}
+{% endblock articles %} 
