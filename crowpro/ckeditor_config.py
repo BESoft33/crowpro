@@ -115,9 +115,9 @@ CKEDITOR_5_CONFIGS = {
     },
 }
 STORAGES = {
-    "default": {"BACKEND": "blog.storage.CustomStorage"},
+    "default": {"BACKEND": "storages.backends.dropbox.DropBoxStorage"},
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        "BACKEND": "storages.backends.dropbox.DropBoxStorage",
     },
 }
 
