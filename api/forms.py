@@ -1,5 +1,5 @@
 from django.forms import ModelForm
-from crowpro.blog.models import Article
+from blog.models import Article
 
 
 class ArticleForm(ModelForm):
