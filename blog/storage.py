@@ -9,4 +9,4 @@ class CustomStorage(FileSystemStorage):
     """Custom storage for django_ckeditor_5 images."""
     location = os.path.join(settings.MEDIA_ROOT, "uploads")
     base_url = urljoin(settings.MEDIA_URL, "uploads/")
-    full_url = urljoin("localhost:8000/", base_url)
+    full_url = urljoin("https://www.dropbox.com/home/Apps/crowpro/", base_url)

@@ -207,15 +207,16 @@ MEDIA_URL = 'https://www.dropbox.com/home/media/'
 # Directory in dropbox to store media files
 # DROPBOX_ROOT_PATH = '/Apps/crowpro/'
 
-# DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
 DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
-# STATICFILES_STORAGE = 'storages.backends.dropbox.DropboxStorage'
 STATICFILES_STORAGE = 'storages.backends.dropbox.DropboxStorage'
 
 
 # URL configuration for serving media files
-# MEDIA_URL = 'https://www.dropbox.com/home/media/'
-# STATIC_URL = 'https://www.dropbox.com/home/staticfiles/'
+MEDIA_URL = 'https://www.dropbox.com/home/media/'
+STATIC_URL = 'https://www.dropbox.com/home/staticfiles/'
+
+# STATIC_URL = 'static/'
+# MEDIA_URL = 'media/'
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -224,7 +225,7 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 AUTH_USER_MODEL = 'users.User'
 
-# CK_EDITOR_5_UPLOAD_FILE_VIEW_NAME = "upload_file"
+CK_EDITOR_5_UPLOAD_FILE_VIEW_NAME = "upload_file"
 CKEDITOR_5_CONFIGS = ck.CKEDITOR_5_CONFIGS
 CKEDITOR_5_FILE_UPLOAD_PERMISSION = ck.CKEDITOR_5_FILE_UPLOAD_PERMISSION
-CKEDITOR_5_FILE_STORAGES = STORAGES
+CKEDITOR_5_FILE_STORAGES = ck.STORAGES
