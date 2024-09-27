@@ -9,4 +9,5 @@ images
 media
 uploads
 db.sqlite3
+static
 staticfiles
