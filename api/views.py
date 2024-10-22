@@ -87,8 +87,12 @@ class ArticleView(APIView):
         if not slug:
             return Response({"error": "Slug is required"}, status=status.HTTP_400_BAD_REQUEST)
         article = get_object_or_404(Article, slug=slug)
-        serializer = ArticleUpdateSerializer(article, data=request.data, partial=True)
-
+        if request.user.role == User.Role.EDITOR:
+            serializer = ArticlePublishOrApproveSerializer(article, data=request.data, partial=True)
+        elif request.user.role == User.Role.AUTHOR:
+            serializer = ArticleUpdateSerializer(article, data=request.data, partial=True)
+        else:
+            raise exceptions.PermissionDenied()
         if serializer.is_valid():
             # Handle thumbnail upload
             thumbnail = request.FILES.get('thumbnail')
