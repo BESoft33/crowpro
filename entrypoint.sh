@@ -10,7 +10,8 @@ python -m pip install --no-cache-dir -r requirements.txt.dev
 # Run Django database migrations
 python manage.py makemigrations
 python manage.py migrate
-python manage.py collectstatic
+
+# python manage.py collectstatic
 
 # Start the Django development server
 exec "$@"

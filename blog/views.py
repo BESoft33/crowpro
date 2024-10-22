@@ -10,7 +10,7 @@ def upload_file(request):
         # Get Dropbox storage backend
         storage = get_storage_class('storages.backends.dropbox.DropBoxStorage')()
         # Save the uploaded file to Dropbox
-        filename = storage.save(uploaded_file.name, uploaded_file)
+        filename = storage.save(f'images/{uploaded_file.name}', uploaded_file)
         file_url = storage.url(filename)
 
         return JsonResponse({

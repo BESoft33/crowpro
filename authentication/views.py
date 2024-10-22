@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.decorators import authentication_classes, api_view
 from .serializers import SignupSerializer, UserSerializer, PasswordResetSerializer
 from django.db import IntegrityError
 from .utils import get_tokens_for_user
@@ -95,3 +96,14 @@ class PasswordResetView(APIView):
                 return Response(serializer.data)
         else:
             raise PermissionDenied()
+
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+def get_current_user(request):
+    print(request.headers)
+    if request.user.is_authenticated:
+        return Response({
+            "user_id": request.user.id,
+            "user_role": request.user.role
+        })
+    raise NotAuthenticated()
