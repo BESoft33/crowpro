@@ -6,6 +6,7 @@ from rest_framework.response import Response
 
 from .utils import get_user_from_token
 
+SAFE_METHODS = ["GET", "OPTIONS", "HEAD"]
 
 def resolve_user(authorization=None):
     if authorization is None:
@@ -23,6 +24,8 @@ class IsAuthor(BaseAuthentication):
 
 class IsAdmin(BaseAuthentication):
     def authenticate(self, request):
+        if request.method in SAFE_METHODS:
+            return AnonymousUser, None
         user = resolve_user(request.headers.get('Authorization'))
         if user.is_superuser:
             return user, None
@@ -32,13 +35,15 @@ class IsAdmin(BaseAuthentication):
 class IsModerator(BaseAuthentication):
     def authenticate(self, request):
         user = resolve_user(request.headers.get('Authorization'))
-        if user.is_superuser:
+        if user.is_staff:
             return user, None
         return None
 
 
 class IsEditor(BaseAuthentication):
     def authenticate(self, request):
+        if request.method in SAFE_METHODS:
+            return AnonymousUser, None
         user = resolve_user(request.headers.get('Authorization'))
         if user.role == User.Role.EDITOR:
             return user, None

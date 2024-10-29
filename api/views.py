@@ -116,6 +116,18 @@ class EditorialView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [IsEditor, IsAdmin]
 
+    def get(self, request):
+        # Fetch specific editorial based on slug or return all editorials
+        slug = request.query_params.get('q')
+        if slug:
+            editorial = get_object_or_404(Editorial, slug=slug)
+            serializer = EditorialSerializer(editorial)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            editorials = Editorial.objects.filter(hide=False, published_on__lte=timezone.now())
+            serializer = EditorialSerializer(editorials, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
     def post(self, request):
         form = EditorialForm(request.POST, request.FILES)
 
