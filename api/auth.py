@@ -24,8 +24,6 @@ class IsAuthor(BaseAuthentication):
 
 class IsAdmin(BaseAuthentication):
     def authenticate(self, request):
-        if request.method in SAFE_METHODS:
-            return AnonymousUser, None
         user = resolve_user(request.headers.get('Authorization'))
         if user.is_superuser:
             return user, None
@@ -42,8 +40,6 @@ class IsModerator(BaseAuthentication):
 
 class IsEditor(BaseAuthentication):
     def authenticate(self, request):
-        if request.method in SAFE_METHODS:
-            return AnonymousUser, None
         user = resolve_user(request.headers.get('Authorization'))
         if user.role == User.Role.EDITOR:
             return user, None
