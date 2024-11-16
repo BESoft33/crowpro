@@ -1,13 +1,15 @@
 from django.db.models import Q, Count
 from django.shortcuts import get_object_or_404
 import django_filters.rest_framework as filters
+from rest_framework.decorators import permission_classes, authentication_classes, api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
 from rest_framework import status, generics
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework import exceptions
+from rest_framework import viewsets
 from django.http import Http404
 from django.utils import timezone
 
@@ -37,8 +39,6 @@ from blog.forms import ArticleForm, EditorialForm
 class ArticleListView(generics.ListAPIView):
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
-    filter_backends = [filters.DjangoFilterBackend]
-    filterset_class = ArticleFilter
     permission_classes = [AllowAny]
     authentication_classes = []
 
@@ -112,21 +112,110 @@ class ArticleView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@api_view(('GET',))
+@permission_classes([AllowAny])
+@authentication_classes([])
+def get_editorial(request, slug: str):
+    editorial = get_object_or_404(Editorial, slug=slug)
+    serializer = EditorialSerializer(editorial)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class EditorialViewSet(viewsets.ViewSet):
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = []
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
+    def get_authentication(self):
+        if self.action in ['list', 'retrieve']:
+            authentication_classes = []
+        else:
+            authentication_classes = [IsAdmin, IsEditor, IsModerator]
+        return [permission() for permission in permission_classes]
+    def list(self, request):
+        editorials = Editorial.objects.all()
+        serializer = EditorialSerializer(editorials, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+    def create(self, request):
+        form = EditorialForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            editorial = form.save(commit=False)
+            editorial.created_by = request.user
+
+            try:
+                serializer = EditorialSerializer(editorial)
+                editorial.save()
+                return Response({
+                    'message': 'Editorial created successfully.',
+                    'data': serializer.data,
+                    'status': status.HTTP_201_CREATED
+                }, status=status.HTTP_201_CREATED)
+
+            except Exception as e:
+                return Response({
+                    'message': str(e),
+                    'status': status.HTTP_400_BAD_REQUEST
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+        else:
+            return Response({
+                'message': 'Invalid form data.',
+                'errors': form.errors,
+                'status': status.HTTP_400_BAD_REQUEST
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def retrieve(self, request, pk=None):
+        editorial = get_object_or_404(Editorial, slug=pk)
+        serializer = EditorialSerializer(editorial)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+    def update(self, request, pk=None):
+        editorial = get_object_or_404(Editorial, slug=pk)
+        serializer = EditorialSerializer(editorial, data=request.data)
+        if serializer.is_valid():
+            thumbnail = request.FILES.get('thumbnail')
+            if thumbnail:
+                serializer.validated_data['thumbnail'] = thumbnail
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def partial_update(self, request, pk=None):
+        editorial = get_object_or_404(Editorial, slug=pk)
+        serializer = EditorialSerializer(editorial, data=request.data, partial=True)
+        if serializer.is_valid():
+            thumbnail = request.FILES.get('thumbnail')
+            if thumbnail:
+                serializer.validated_data['thumbnail'] = thumbnail
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, slug=None):
+        pass
+
 class EditorialView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [IsEditor, IsAdmin]
 
-    def get(self, request):
-        # Fetch specific editorial based on slug or return all editorials
-        slug = request.query_params.get('q')
-        if slug:
-            editorial = get_object_or_404(Editorial, slug=slug)
-            serializer = EditorialSerializer(editorial)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            editorials = Editorial.objects.filter(hide=False, published_on__lte=timezone.now())
-            serializer = EditorialSerializer(editorials, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_queryset(self, request, *args, **kwargs):
+        if request.method == 'GET':
+            self.authentication_classes = []
+            self.permission_classes = [AllowAny,]
+            return super().get_queryset(request, *args, **kwargs)
+        return super().get_queryset(request, *args, **kwargs)
+
+    def get(self, request, slug):
+        editorial = get_object_or_404(Editorial, slug=slug)
+        serializer = EditorialSerializer(editorial)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         form = EditorialForm(request.POST, request.FILES)
@@ -182,22 +271,24 @@ class EditorialView(APIView):
         editorial.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+class ArticleEditorialViewSet(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+    def list(self, request, id):
+        # Fetch the articles and editorials
+        author = User.objects.get(id=id)
+        articles = Article.objects.filter(created_by=author)
+        editorials = Editorial.objects.filter(created_by=author)
 
-class AuthorArticleListView(APIView):
-    authentication_classes = [IsAuthor, IsAdmin]
-    permission_classes = [IsAuthenticated]
+        # Serialize the data
+        article_serializer = ArticleSerializer(articles, many=True)
+        editorial_serializer = EditorialSerializer(editorials, many=True)
 
-    def get(self, request):
-        articles = Article.objects.filter(created_by=request.user)
-        serializer = ArticleSerializer(articles, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = ArticleSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Return both the serialized data as part of the response
+        return Response({
+            'articles': article_serializer.data,
+            'editorials': editorial_serializer.data
+        })
 
 
 class ArticleDetailView(APIView):
