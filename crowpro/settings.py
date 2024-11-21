@@ -192,20 +192,11 @@ USE_I18N = True
 
 USE_TZ = True
 
+STATIC_URL = '/static/'
 
-# Directory in dropbox to store media files
-# DROPBOX_ROOT_PATH = '/Apps/crowpro/'
-
-DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
-STATICFILES_STORAGE = 'storages.backends.dropbox.DropboxStorage'
-
-
-# URL configuration for serving media files
-MEDIA_URL = 'https://www.dropbox.com/home/media/'
-STATIC_URL = 'https://www.dropbox.com/home/staticfiles/'
-
-# STATIC_URL = 'static/'
-# MEDIA_URL = 'media/'
+if not DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
