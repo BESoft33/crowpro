@@ -1,6 +1,5 @@
 from django.db.models import Q, Count
 from django.shortcuts import get_object_or_404
-import django_filters.rest_framework as filters
 from rest_framework.decorators import permission_classes, authentication_classes, api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,15 +11,14 @@ from rest_framework import exceptions
 from rest_framework import viewsets
 from django.http import Http404
 from django.utils import timezone
-
-from .filters import ArticleFilter
 from .serializer import (
     EditorialSerializer,
     UserSerializer,
     ArticleUpdateSerializer,
     ArticlePublishOrApproveSerializer,
     StatisticsSerializer,
-    ArticleSerializer
+    ArticleSerializer,
+    BookmarkSerializer,
 )
 from users.mixins import ActivityLogMixin
 from users.models import (
@@ -32,7 +30,7 @@ from users.models import (
     Admin,
 )
 from .auth import IsEditor, IsAdmin, IsAuthor, IsModerator
-from blog.models import Article, Editorial
+from blog.models import Article, Editorial, Bookmark
 from blog.forms import ArticleForm, EditorialForm
 
 
@@ -127,19 +125,19 @@ class EditorialViewSet(viewsets.ViewSet):
             permission_classes = []
         else:
             permission_classes = [IsAuthenticated]
-        return [permission() for permission in permission_classes]
+        return [permission for permission in permission_classes]
 
     def get_authentication(self):
         if self.action in ['list', 'retrieve']:
             authentication_classes = []
         else:
             authentication_classes = [IsAdmin, IsEditor, IsModerator]
-        return [permission() for permission in permission_classes]
+        return [authentication for authentication in authentication_classes]
+
     def list(self, request):
         editorials = Editorial.objects.all()
         serializer = EditorialSerializer(editorials, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
     def create(self, request):
         form = EditorialForm(request.POST, request.FILES)
@@ -175,7 +173,6 @@ class EditorialViewSet(viewsets.ViewSet):
         serializer = EditorialSerializer(editorial)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
     def update(self, request, pk=None):
         editorial = get_object_or_404(Editorial, slug=pk)
         serializer = EditorialSerializer(editorial, data=request.data)
@@ -201,6 +198,7 @@ class EditorialViewSet(viewsets.ViewSet):
     def destroy(self, request, slug=None):
         pass
 
+
 class EditorialView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [IsEditor, IsAdmin]
@@ -208,7 +206,7 @@ class EditorialView(APIView):
     def get_queryset(self, request, *args, **kwargs):
         if request.method == 'GET':
             self.authentication_classes = []
-            self.permission_classes = [AllowAny,]
+            self.permission_classes = [AllowAny, ]
             return super().get_queryset(request, *args, **kwargs)
         return super().get_queryset(request, *args, **kwargs)
 
@@ -271,9 +269,11 @@ class EditorialView(APIView):
         editorial.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
 class ArticleEditorialViewSet(viewsets.ViewSet):
     permission_classes = [AllowAny]
     authentication_classes = []
+
     def list(self, request, id):
         # Fetch the articles and editorials
         author = User.objects.get(id=id)
@@ -374,10 +374,6 @@ class UserDetailsView(GenericAPIView):
         raise exceptions.APIException()
 
 
-# class ArticleRListView(ActivityLogMixin, APIView):
-#     def get(self, request, *args, **kwargs):
-#         return Response({"articles": Article.objects.values()})
-
 class PostReadOnlyViewSet(ActivityLogMixin, ReadOnlyModelViewSet):
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
@@ -435,3 +431,25 @@ class StatsView(APIView):
         }
         serializer = StatisticsSerializer(data)
         return Response(serializer.data)
+
+
+class BookmarkView(APIView):
+    authentication_classes = []
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, slug):
+        user = request.user
+        article = Article.objects.get(slug=slug)
+        bookmark = Bookmark.objects.create(user=user, article=article)
+        serializer = BookmarkSerializer(bookmark)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def get(self, request):
+        user = request.user
+        bookmarks = Bookmark.objects.filter(user=user)
+        serializer = BookmarkSerializer(bookmarks, many=True)
+        return Response(serializer.data)
+
+    def delete(self, request, id):
+        bookmark = Bookmark.objects.delete(id=id)
+        return Response(status=status.HTTP_200_OK)

@@ -119,3 +119,9 @@ class ArticleStatsSerializer(serializers.Serializer):
 class StatisticsSerializer(serializers.Serializer):
     article = ArticleStatsSerializer()
     user_stats = UserStatsSerializer()
+
+
+class BookmarkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Article
+        fields = '__all__'

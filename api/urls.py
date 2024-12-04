@@ -13,6 +13,7 @@ from .views import (
     EditorialView,
     get_editorial,
     EditorialViewSet,
+    BookmarkView
 )
 from users.models import Editor, Author, Admin, Moderator
 from .auth import IsEditor, IsAdmin, IsAuthor, IsModerator
@@ -53,6 +54,9 @@ urlpatterns = [
     path('moderators/', UserListView.as_view(model=Moderator), name='moderators'),
 
     path('stats/', StatsView.as_view(), name='stats'),
+    path('bookmarks/<slug:slug>/', BookmarkView.as_view(), name='create-bookmark'),
+    path('bookmarks/', BookmarkView.as_view(), name='list-bookmarks'),
+    path('bookmarks/<int:user_id>/', BookmarkView.as_view(), name='delete-bookmark'),
 
 ]
 

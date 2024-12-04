@@ -4,7 +4,7 @@ from django.utils.text import slugify
 
 from django_ckeditor_5.fields import CKEditor5Field
 
-from users.models import Author, Editor
+from users.models import Author, Editor, User
 
 
 class Article(models.Model):
@@ -55,3 +55,11 @@ class Editorial(models.Model):
         else:
             self.slug = slugify(self.title)
             super().save(*args, **kwargs)
+
+
+class Bookmark(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.user}  {self.article}"
