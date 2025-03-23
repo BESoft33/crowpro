@@ -13,11 +13,9 @@ COPY ./requirements.txt ./requirements.txt
 
 RUN python -m pip install --upgrade pip
 RUN python -m pip install --no-cache-dir -r requirements.txt
-RUN python manage.py makemigrations
-RUN python manage.py migrate
 
 # Copy the rest of the application code to the working directory
-COPY crowpro/ .
+COPY . .
 
 # Copy the entrypoint script into the container
 COPY entrypoint.sh ./entrypoint.sh
