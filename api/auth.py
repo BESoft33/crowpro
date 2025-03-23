@@ -32,7 +32,7 @@ class IsAdmin(BaseAuthentication):
 class IsModerator(BaseAuthentication):
     def authenticate(self, request):
         user = resolve_user(request.headers.get('Authorization'))
-        if user.is_superuser:
+        if user.is_staff:
             return user, None
         return None
 

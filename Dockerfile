@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # Set the working directory in the container
-WORKDIR /usr/src/crowcrows
+WORKDIR /usr/src/
 
 # Copy the requirements file and install dependencies
 COPY ./requirements.txt ./requirements.txt

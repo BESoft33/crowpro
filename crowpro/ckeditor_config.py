@@ -73,16 +73,20 @@ CKEDITOR_5_CONFIGS = {
             'shouldNotGroupWhenFull': 'true'
         },
         'image': {
-            'toolbar': ['imageTextAlternative', '|', 'imageStyle:alignLeft',
-                        'imageStyle:alignRight', 'imageStyle:alignCenter', 'imageStyle:side', '|'],
-            'styles': [
-                'full',
-                'side',
-                'alignLeft',
-                'alignRight',
-                'alignCenter',
-            ]
-
+            'toolbar': [
+                'imageTextAlternative', 'toggleImageCaption', '|', 'imageStyle:inline', 'imageStyle:wrapText', 'imageStyle:breakText', '|', 'resizeImage'
+            ],
+            'resizeOptions': [
+                {'name': 'resizeImage:original', 'label': 'Default image width', 'value': None},
+                {'name': 'resizeImage:50', 'label': '50% page width', 'value': '50'},
+                {'name': 'resizeImage:75', 'label': '75% page width', 'value': '75'},
+                {'name': 'resizeImage:25', 'label': '25% page width', 'value': '25'},
+                {'name': 'resizeImage:60', 'label': '60% page width', 'value': '60'},
+                {'name': 'resizeImage:40', 'label': '40% page width', 'value': '40'},
+            ],
+        },
+        'table': {
+            'contentToolbar': ['toggleTableCaption', 'tableColumn', 'tableRow', 'mergeTableCells', 'tableCellProperties', 'tableProperties'],
         },
         'table': {
             'contentToolbar': ['tableColumn', 'tableRow', 'mergeTableCells',

@@ -19,7 +19,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./crowpro:/usr/src/crowpro/
+      - /usr/src/
     command:
       python manage.py runserver 0.0.0.0:8000
     depends_on:
