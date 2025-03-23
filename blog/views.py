@@ -6,7 +6,7 @@ from dropbox.exceptions import ApiError
 from django.utils._os import safe_join
 
 class ModifiedDropboxStorage(DropboxStorage):
-    
+
     def url(self, name):
         # Get or create a shared link for the file to avoid temporary URL expiration
         if name == "/":
@@ -18,23 +18,23 @@ class ModifiedDropboxStorage(DropboxStorage):
         print(shared_link_metadata.url, url)
         return url
 
-        
+
 
 @csrf_exempt
 def upload_file(request):
-    if request.method == 'POST' or request.method == 'PATCH' and request.FILES.get('upload'):
+    if request.method == 'POST' or request.method == 'PATCH' and request.FILES.get('file'):
         uploaded_file = request.FILES['upload']
 
         # storage = get_storage_class('storages.backends.dropbox.DropBoxStorage')()
         storage = ModifiedDropboxStorage()
         # Save the uploaded file to Dropbox
         filename = storage.save(f'images/{uploaded_file.name}', uploaded_file)
-        
+
 
         try:
             dbx = storage.client
             # shared_link_metadata = dbx.sharing_create_shared_link_with_settings(filename)
-            # file_url = shared_link_metadata.url.replace('?dl=0', '?dl=1') 
+            # file_url = shared_link_metadata.url.replace('?dl=0', '?dl=1')
             # print(file_url)
         except ApiError as e:
             # return JsonResponse({

@@ -192,12 +192,13 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = '/static/'
+DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
+STATICFILES_STORAGE = 'storages.backends.dropbox.DropboxStorage'
 
-if not DEBUG:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# URL configuration for serving media files
+MEDIA_URL = 'https://www.dropbox.com/home/media/'
+STATIC_URL = 'https://www.dropbox.com/home/staticfiles/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

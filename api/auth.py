@@ -6,7 +6,6 @@ from rest_framework.response import Response
 
 from .utils import get_user_from_token
 
-SAFE_METHODS = ["GET", "OPTIONS", "HEAD"]
 
 def resolve_user(authorization=None):
     if authorization is None:
