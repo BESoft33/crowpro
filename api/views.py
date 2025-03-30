@@ -1,6 +1,5 @@
 from django.db.models import Q, Count
 from django.shortcuts import get_object_or_404
-import django_filters.rest_framework as filters
 from rest_framework.decorators import permission_classes, authentication_classes, api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,7 +12,7 @@ from rest_framework import viewsets
 from django.http import Http404
 from django.utils import timezone
 
-from .filters import ArticleFilter
+from .permissions import IsStaffUser
 from .serializer import (
     EditorialSerializer,
     UserSerializer,
@@ -31,7 +30,7 @@ from users.models import (
     Moderator,
     Admin,
 )
-from .auth import IsEditor, IsAdmin, IsAuthor, IsModerator
+import auth
 from blog.models import Article, Editorial
 from blog.forms import ArticleForm, EditorialForm
 
@@ -51,7 +50,7 @@ class ArticleListView(generics.ListAPIView):
 
 class ArticleView(APIView):
     permission_classes = [IsAuthenticated]
-    authentication_classes = [IsAuthor, IsAdmin]
+    authentication_classes = [auth.Author, auth.Admin]
 
     def post(self, request):
         form = ArticleForm(request.POST, request.FILES)
@@ -122,24 +121,13 @@ def get_editorial(request, slug: str):
 
 
 class EditorialViewSet(viewsets.ViewSet):
-    def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            permission_classes = []
-        else:
-            permission_classes = [IsAuthenticated]
-        return [permission() for permission in permission_classes]
+    authentication_classes = [auth.Staff]
+    permission_classes = [IsAuthenticated]
 
-    def get_authentication(self):
-        if self.action in ['list', 'retrieve']:
-            authentication_classes = []
-        else:
-            authentication_classes = [IsAdmin, IsEditor, IsModerator]
-        return [permission() for permission in permission_classes]
     def list(self, request):
         editorials = Editorial.objects.all()
         serializer = EditorialSerializer(editorials, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
     def create(self, request):
         form = EditorialForm(request.POST, request.FILES)
@@ -175,7 +163,6 @@ class EditorialViewSet(viewsets.ViewSet):
         serializer = EditorialSerializer(editorial)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
     def update(self, request, pk=None):
         editorial = get_object_or_404(Editorial, slug=pk)
         serializer = EditorialSerializer(editorial, data=request.data)
@@ -201,14 +188,15 @@ class EditorialViewSet(viewsets.ViewSet):
     def destroy(self, request, slug=None):
         pass
 
+
 class EditorialView(APIView):
     permission_classes = [IsAuthenticated]
-    authentication_classes = [IsEditor, IsAdmin]
+    authentication_classes = [auth.Staff]
 
     def get_queryset(self, request, *args, **kwargs):
         if request.method == 'GET':
             self.authentication_classes = []
-            self.permission_classes = [AllowAny,]
+            self.permission_classes = [AllowAny, ]
             return super().get_queryset(request, *args, **kwargs)
         return super().get_queryset(request, *args, **kwargs)
 
@@ -271,9 +259,11 @@ class EditorialView(APIView):
         editorial.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
 class ArticleEditorialViewSet(viewsets.ViewSet):
     permission_classes = [AllowAny]
     authentication_classes = []
+
     def list(self, request, id):
         # Fetch the articles and editorials
         author = User.objects.get(id=id)
@@ -308,7 +298,7 @@ class ArticleDetailView(APIView):
 
 
 class UserListView(GenericAPIView):
-    authentication_classes = [IsAdmin, IsModerator]
+    authentication_classes = [auth.Staff]
     permission_classes = [IsAuthenticated]
     serializer_class = UserSerializer
     model = User
@@ -387,7 +377,7 @@ class PostReadOnlyViewSet(ActivityLogMixin, ReadOnlyModelViewSet):
 
 
 class StatsView(APIView):
-    authentication_classes = [IsAdmin, IsModerator]
+    authentication_classes = [auth.Staff]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
