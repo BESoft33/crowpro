@@ -30,7 +30,7 @@ from users.models import (
     Moderator,
     Admin,
 )
-import auth
+from . import auth
 from blog.models import Article, Editorial
 from blog.forms import ArticleForm, EditorialForm
 

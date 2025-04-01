@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /usr/src/crowcrows
 
 # Copy the entrypoint script first to prevent caching issues
-COPY entrypoint.sh ./entrypoint.sh
+COPY ./entrypoint.sh ./entrypoint.sh
 
 # Ensure the entrypoint script is executable
 RUN chmod +x ./entrypoint.sh
