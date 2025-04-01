@@ -3,8 +3,6 @@ from users.models import User
 from .utils import get_user_from_token
 
 
-
-
 def resolve_user(authorization=None):
     if authorization is None:
         return None
@@ -46,4 +44,5 @@ class Editor(BaseAuthentication):
 class Staff(BaseAuthentication):
     def authenticate(self, request):
         user = resolve_user(request.headers.get('Authorization'))
-        return (user, None) if user.is_staff else None
+        return (user, None) if user is not None else None
+
