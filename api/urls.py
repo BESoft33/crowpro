@@ -15,7 +15,7 @@ from .views import (
     EditorialViewSet,
 )
 from users.models import Editor, Author, Admin, Moderator
-from .auth import IsEditor, IsAdmin, IsAuthor, IsModerator
+from . import auth
 
 router = DefaultRouter()
 
@@ -27,25 +27,25 @@ urlpatterns = [
     path('editorial/<str:slug>', get_editorial, name='editorials'),
     path('users/', UserListView.as_view(), name='users'),
 
-    path('user/<int:pk>/', UserDetailsView.as_view(authentication_classes=[IsAuthor,
-                                                                           IsAdmin,
-                                                                           IsModerator
+    path('user/<int:pk>/', UserDetailsView.as_view(authentication_classes=[auth.Author,
+                                                                           auth.Admin,
+                                                                           auth.Moderator
                                                                            ],
                                                    model=Author,
                                                    ), name='user'),
-    path('author/<int:pk>/', UserDetailsView.as_view(authentication_classes=[IsAuthor,
-                                                                             IsAdmin,
-                                                                             IsModerator
+    path('author/<int:pk>/', UserDetailsView.as_view(authentication_classes=[auth.Author,
+                                                                             auth.Admin,
+                                                                             auth.Moderator
                                                                              ],
                                                      model=Author,
                                                      ), name='author'),
-    path('editor/<int:pk>/', UserDetailsView.as_view(authentication_classes=[IsEditor,
-                                                                             IsAdmin,
-                                                                             IsModerator
+    path('editor/<int:pk>/', UserDetailsView.as_view(authentication_classes=[auth.Editor,
+                                                                             auth.Admin,
+                                                                             auth.Moderator
                                                                              ],
                                                      model=Editor,
                                                      ), name='editor'),
-    path('<int:id>/articles/', ArticleEditorialViewSet.as_view({'get':'list'}), name='author-articles'),
+    path('<int:id>/articles/', ArticleEditorialViewSet.as_view({'get': 'list'}), name='author-articles'),
 
     path('users/', UserListView.as_view(), name='users'),
     path('authors/', UserListView.as_view(model=Author), name='authors'),

@@ -33,7 +33,8 @@ class SignupView(APIView):
                 return Response(
                     {'status': 'error', 'message': 'An account with the provided email address already exists.'},
                     status=status.HTTP_400_BAD_REQUEST)
-        return Response({'status': status.HTTP_400_BAD_REQUEST, 'message': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'status': status.HTTP_400_BAD_REQUEST, 'message': serializer.errors},
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogoutView(APIView, BlacklistMixin, AccessToken):
@@ -97,10 +98,10 @@ class PasswordResetView(APIView):
         else:
             raise PermissionDenied()
 
+
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
 def get_current_user(request):
-    print(request.headers)
     if request.user.is_authenticated:
         return Response({
             "user_id": request.user.id,

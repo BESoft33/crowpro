@@ -1,19 +1,17 @@
-from django.contrib.auth.models import AnonymousUser
 from rest_framework.authentication import BaseAuthentication
-from rest_framework import exceptions, status
 from users.models import User
-from rest_framework.response import Response
-
 from .utils import get_user_from_token
+
+
 
 
 def resolve_user(authorization=None):
     if authorization is None:
-        raise exceptions.NotAuthenticated()
+        return None
     return get_user_from_token(authorization)
 
 
-class IsAuthor(BaseAuthentication):
+class Author(BaseAuthentication):
     def authenticate(self, request):
         user = resolve_user(request.headers.get('Authorization'))
         if user.role == User.Role.AUTHOR:
@@ -21,7 +19,7 @@ class IsAuthor(BaseAuthentication):
         return None
 
 
-class IsAdmin(BaseAuthentication):
+class Admin(BaseAuthentication):
     def authenticate(self, request):
         user = resolve_user(request.headers.get('Authorization'))
         if user.is_superuser:
@@ -29,7 +27,7 @@ class IsAdmin(BaseAuthentication):
         return None
 
 
-class IsModerator(BaseAuthentication):
+class Moderator(BaseAuthentication):
     def authenticate(self, request):
         user = resolve_user(request.headers.get('Authorization'))
         if user.is_staff:
@@ -37,9 +35,15 @@ class IsModerator(BaseAuthentication):
         return None
 
 
-class IsEditor(BaseAuthentication):
+class Editor(BaseAuthentication):
     def authenticate(self, request):
         user = resolve_user(request.headers.get('Authorization'))
         if user.role == User.Role.EDITOR:
             return user, None
         return None
+
+
+class Staff(BaseAuthentication):
+    def authenticate(self, request):
+        user = resolve_user(request.headers.get('Authorization'))
+        return (user, None) if user.is_staff else None
