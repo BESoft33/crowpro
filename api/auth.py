@@ -4,6 +4,7 @@ from .utils import get_user_from_token
 
 
 
+
 def resolve_user(authorization=None):
     if authorization is None:
         return None
