@@ -8,20 +8,24 @@ ENV PYTHONUNBUFFERED=1
 # Set the working directory in the container
 WORKDIR /usr/src/crowcrows
 
-# Copy the entrypoint script first to prevent caching issues
+# Copy entrypoint and requirements first (to leverage Docker cache)
 COPY ./entrypoint.sh ./entrypoint.sh
-
-# Ensure the entrypoint script is executable
-RUN chmod +x ./entrypoint.sh
-
-# Copy the requirements file and install dependencies
 COPY ./requirements.txt ./requirements.txt
 
-# Copy the rest of the application code to the working directory
+# Copy the rest of the application
 COPY . .
 
-# Expose port 8000 to the outside world
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+RUN yes | python3 manage.py makemigrations
+RUN python3 manage.py migrate --noinput
+#RUN python3 manage.py collectstatic --noinput
+
+# Make entrypoint executable
+RUN chmod +x ./entrypoint.sh
+
+# Expose port
 EXPOSE 8000
 
-# Set the entrypoint script as the container's entrypoint
-ENTRYPOINT ["./entrypoint.sh"]
+# Run entrypoint
+#ENTRYPOINT ["./entrypoint.sh"]

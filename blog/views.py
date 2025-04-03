@@ -5,6 +5,7 @@ from storages.backends.dropbox import DropboxStorage
 from dropbox.exceptions import ApiError
 from django.utils._os import safe_join
 
+
 class ModifiedDropboxStorage(DropboxStorage):
 
     def url(self, name):
@@ -14,10 +15,9 @@ class ModifiedDropboxStorage(DropboxStorage):
         full_path = safe_join(self.root_path, name).replace("\\", "/")
         print(full_path)
         shared_link_metadata = self.client.sharing_create_shared_link_with_settings(full_path)
-        url = shared_link_metadata.url.replace('dl=0','dl=1')
+        url = shared_link_metadata.url.replace('dl=0', 'dl=1')
         print(shared_link_metadata.url, url)
         return url
-
 
 
 @csrf_exempt
@@ -29,7 +29,6 @@ def upload_file(request):
         storage = ModifiedDropboxStorage()
         # Save the uploaded file to Dropbox
         filename = storage.save(f'images/{uploaded_file.name}', uploaded_file)
-
 
         try:
             dbx = storage.client

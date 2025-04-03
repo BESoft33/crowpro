@@ -1,61 +1,23 @@
-from django.urls import path, include
-from rest_framework.urlpatterns import format_suffix_patterns
+# urls.py
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-
 from .views import (
-    ArticleListView,
-    ArticleDetailView,
-    UserListView,
-    UserDetailsView,
-    ArticleView,
-    StatsView,
-    ArticleEditorialViewSet,
-    EditorialView,
-    get_editorial,
+    ArticleViewSet,
     EditorialViewSet,
+    PostReadOnlyViewSet,
+    StatsView,
+    UserViewSet,
 )
-from users.models import Editor, Author, Admin, Moderator
-from . import auth
 
 router = DefaultRouter()
 
+# Register viewsets with the router
+router.register(r'articles', ArticleViewSet, basename='article')
+router.register(r'editorials', EditorialViewSet, basename='editorial')
+router.register(r'posts', PostReadOnlyViewSet, basename='post')
+router.register(r'stats', StatsView, basename='stat')
+router.register(r'users', UserViewSet, basename='user')
+
 urlpatterns = [
-    path('auth/', include('rest_framework.urls')),
-    path('articles/', ArticleListView.as_view(), name='articles'),
-    path('article/', ArticleView.as_view(), name='article-create'),
-    path('article/<str:slug>/', ArticleDetailView.as_view(), name='article'),
-    path('editorial/<str:slug>', get_editorial, name='editorials'),
-    path('users/', UserListView.as_view(), name='users'),
-
-    path('user/<int:pk>/', UserDetailsView.as_view(authentication_classes=[auth.Author,
-                                                                           auth.Admin,
-                                                                           auth.Moderator
-                                                                           ],
-                                                   model=Author,
-                                                   ), name='user'),
-    path('author/<int:pk>/', UserDetailsView.as_view(authentication_classes=[auth.Author,
-                                                                             auth.Admin,
-                                                                             auth.Moderator
-                                                                             ],
-                                                     model=Author,
-                                                     ), name='author'),
-    path('editor/<int:pk>/', UserDetailsView.as_view(authentication_classes=[auth.Editor,
-                                                                             auth.Admin,
-                                                                             auth.Moderator
-                                                                             ],
-                                                     model=Editor,
-                                                     ), name='editor'),
-    path('<int:id>/articles/', ArticleEditorialViewSet.as_view({'get': 'list'}), name='author-articles'),
-
-    path('users/', UserListView.as_view(), name='users'),
-    path('authors/', UserListView.as_view(model=Author), name='authors'),
-    path('editors/', UserListView.as_view(model=Editor), name='editors'),
-    path('moderators/', UserListView.as_view(model=Moderator), name='moderators'),
-
-    path('stats/', StatsView.as_view(), name='stats'),
-
+    path('', include(router.urls)),
 ]
-
-urlpatterns = format_suffix_patterns(urlpatterns)
-router.register('editorial', EditorialViewSet, basename='editorial')
-urlpatterns += router.urls
