@@ -14,7 +14,7 @@ class Publication(models.Model):
         Editorial = "EDITORIAL", _('Editorial')
         Article = "ARTICLE", _('Article')
 
-    publication_type = models.TextField(PublicationType, default=PublicationType.Article)
+    publication_type = models.TextField(choices=PublicationType.choices, default=PublicationType.Article)
     title = models.CharField(max_length=128, default='')
     published_on = models.DateTimeField(null=True, blank=True)
     content = CKEditor5Field()

@@ -1,22 +1,22 @@
 from django.db.models import Q, Count
 from django.utils import timezone
 from rest_framework import status, exceptions, mixins
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, AllowAny, BasePermission
+from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated, AllowAny, OR
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
-from rest_framework.parsers import MultiPartParser
+from rest_framework.generics import UpdateAPIView
 
 from .serializer import (
     EditorialSerializer,
     UserSerializer,
     StatisticsSerializer,
     ArticleSerializer,
+    PublicationApproveSerializer
 )
 from .permissions import IsStaff, IsEditor, IsAuthor
-from users.mixins import ActivityLogMixin
 from users.models import User
-from blog.models import Article, Editorial
+from blog.models import Article, Editorial, Publication
 
 
 class ArticleViewSet(GenericViewSet):
@@ -26,16 +26,23 @@ class ArticleViewSet(GenericViewSet):
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             return [AllowAny()]
-        return [IsAuthenticated()]
+        return [IsAuthor()]
 
-    def get_serializer_class(self):
-        if self.action == 'create':
-            return ArticleCreateSerializer
-        elif self.action == 'partial_update':
-            if self.request.user.role == User.Role.EDITOR:
-                return ArticlePublishSerializer
-            return ArticleUpdateSerializer
-        return super().get_serializer_class()
+    def get_queryset(self):
+        queryset = Article.objects.all()
+        if self.action in ['list', 'retrieve']:
+            queryset = queryset.filter(hide=False)
+        return queryset
+
+    def list(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -43,31 +50,50 @@ class ArticleViewSet(GenericViewSet):
         serializer.save(created_by=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def partial_update(self, request, slug=None):
-        article = self.get_object()
-        serializer = self.get_serializer(article, data=request.data, partial=True)
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
-        if isinstance(serializer, ArticlePublishSerializer):
-            if article.approved_by is None:
-                raise exceptions.ValidationError("Article must be approved before publishing")
-            serializer.save(published_on=timezone.now() if 'published' in request.data else None)
+        if instance.approved_by is None:
+            raise exceptions.ValidationError("Article must be approved before publishing.")
+        # Check if 'published' is in the request data to determine publishing
+        if 'published' in request.data:
+            published_on = timezone.now() if request.data['published'] else None
+            serializer.save(published_on=published_on)
         else:
             serializer.save()
 
         return Response(serializer.data)
 
-    def destroy(self, request, slug=None):
-        article = self.get_object()
-        article.hide = True
-        article.save()
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.hide = True
+        instance.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class EditorialViewSet(GenericViewSet):
     serializer_class = EditorialSerializer
     lookup_field = 'slug'
-    permission_classes = [IsStaff]
+    queryset = Editorial.objects.all()
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        elif self.action == 'create':
+            return [IsEditor()]
+        return [IsStaff()]
+
+    def list(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -83,18 +109,43 @@ class EditorialViewSet(GenericViewSet):
         return Response(serializer.data)
 
 
+class PublicationUpdateView(UpdateAPIView):
+    serializer_class = PublicationApproveSerializer
+    permission_classes = [IsEditor]
+    queryset = Publication.objects.all()
+    lookup_field = 'slug'
+
+    def perform_update(self, serializer):
+        instance = serializer.instance
+        if 'approved_by' in serializer.validated_data:
+            if not instance.approved_by:
+                serializer.validated_data['approved_on'] = timezone.now()
+                serializer.save()
+            else:
+                raise ValidationError("This publication was already approved.")
+
+
 class UserViewSet(GenericViewSet):
     queryset = User.objects.filter(is_active=True)
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
 
-    @action(detail=False, permission_classes=[IsStaff])
-    def list_users(self, request):
-        serializer = self.get_serializer(self.get_queryset(), many=True)
+    def get_permissions(self,):
+        if self.action in ['list', 'retrieve', 'create']:
+            return [AllowAny()]
+        elif self.action in ['update', 'destroy']:
+            return [IsAuthenticated()]
+
+    def list(self, request):
+        queryset = User.objects.all()
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['patch', 'delete'])
-    def manage(self, request, pk=None):
+    def retrieve(self, request, pk=None):
+        user = self.get_object()
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
+
+    def update(self, request, pk=None):
         user = self.get_object()
         if request.method == 'PATCH':
             serializer = self.get_serializer(
@@ -110,6 +161,12 @@ class UserViewSet(GenericViewSet):
         user.is_active = False
         user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def destroy(self):
+        user = self.request.user
+        user.is_active = False
+        user.save()
+        return Response(status=status.HTTP_200_OK)
 
 
 class StatsView(GenericViewSet):
@@ -140,7 +197,7 @@ class StatsView(GenericViewSet):
         }
 
 
-class PostReadOnlyViewSet(ActivityLogMixin, ReadOnlyModelViewSet):
+class PostReadOnlyViewSet(ReadOnlyModelViewSet):
     queryset = Article.objects.filter(hide=False, published=True)
     serializer_class = ArticleSerializer
     permission_classes = [AllowAny]

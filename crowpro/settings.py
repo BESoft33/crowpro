@@ -50,17 +50,6 @@ if DEBUG:
 
     ]
 
-    # DATABASES = {
-    #     'default': {
-    #         'ENGINE': 'django.db.backends.mysql',
-    #         'NAME': 'crowpro',
-    #         'USER': 'mysqluser',
-    #         'PASSWORD': 'mysqlpassword',
-    #         'HOST': 'db',
-    #         'PORT': '3306',
-    #     }
-    # }
-
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -69,6 +58,8 @@ if DEBUG:
     }
 
     CORS_ALLOW_CREDENTIALS = True
+    STATIC_URL = 'static/'
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 else:
     print("--------------------Running in production mode-------------------------")
     SECRET_KEY = SECRET_KEY
@@ -79,6 +70,18 @@ else:
     CORS_ORIGINS_WHITELIST = CORS_ORIGINS_WHITELIST
     CORS_ALLOW_CREDENTIALS = True
     STORAGES = STORAGES
+    DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
+    STATICFILES_STORAGE = 'storages.backends.dropbox.DropboxStorage'
+
+    # URL configuration for serving media files
+    MEDIA_URL = 'https://www.dropbox.com/home/media/'
+    STATIC_URL = 'https://www.dropbox.com/home/staticfiles/'
+
+
+CK_EDITOR_5_UPLOAD_FILE_VIEW_NAME = "upload_file"
+CKEDITOR_5_CONFIGS = ck.CKEDITOR_5_CONFIGS
+CKEDITOR_5_FILE_UPLOAD_PERMISSION = ck.CKEDITOR_5_FILE_UPLOAD_PERMISSION
+CKEDITOR_5_FILE_STORAGES = ck.STORAGES
 
 CORS_ALLOW_HEADERS = [
     'accept',
@@ -102,6 +105,7 @@ INSTALLED_APPS = [
     'api',
     'authentication',
     'blog',
+    'logs',
     'django_ckeditor_5',
     'rest_framework',
     'rest_framework.authtoken',
@@ -110,6 +114,10 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'django_filters',
     'storages',
+    'drf_yasg',
+    'django_user_agents',
+    'admincharts',
+
 ]
 
 MIDDLEWARE = [
@@ -122,11 +130,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'logs.middleware.RequestLoggingMiddleware',
+
 ]
 
 ROOT_URLCONF = 'crowpro.urls'
 
-TEMPLATE_DIR = BASE_DIR / 'users/templates'
+TEMPLATE_DIR = BASE_DIR / 'templates'
 
 TEMPLATES = [
     {
@@ -149,7 +159,6 @@ WSGI_APPLICATION = 'crowpro.wsgi.application'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -185,20 +194,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
-
-DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
-STATICFILES_STORAGE = 'storages.backends.dropbox.DropboxStorage'
-
-
-# URL configuration for serving media files
-MEDIA_URL = 'https://www.dropbox.com/home/media/'
-STATIC_URL = 'https://www.dropbox.com/home/staticfiles/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -206,7 +204,5 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 AUTH_USER_MODEL = 'users.User'
 
-CK_EDITOR_5_UPLOAD_FILE_VIEW_NAME = "upload_file"
-CKEDITOR_5_CONFIGS = ck.CKEDITOR_5_CONFIGS
-CKEDITOR_5_FILE_UPLOAD_PERMISSION = ck.CKEDITOR_5_FILE_UPLOAD_PERMISSION
-CKEDITOR_5_FILE_STORAGES = ck.STORAGES
+GEOIP_PATH = os.path.join(BASE_DIR, 'geoip')
+
