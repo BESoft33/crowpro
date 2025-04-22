@@ -17,9 +17,6 @@ COPY . .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
-RUN yes | python3 manage.py makemigrations
-RUN python3 manage.py migrate --noinput
-#RUN python3 manage.py collectstatic --noinput
 
 # Make entrypoint executable
 RUN chmod +x ./entrypoint.sh
