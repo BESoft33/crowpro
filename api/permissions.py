@@ -7,20 +7,16 @@ from users.models import User
 
 class IsStaff(BasePermission):
     def has_permission(self, request, view):
-        authorization = request.headers.get('Authorization')
-        user = get_user_from_token(authorization) if authorization else AnonymousUser
-        return user.is_staff
+        return request.user.is_staff
 
 
 class IsAuthor(BasePermission):
     def has_permission(self, request, view):
-        authorization = request.headers.get('Authorization')
-        user = get_user_from_token(authorization) if authorization else AnonymousUser
+        user = request.user
         return False if user.is_anonymous else user.role == User.Role.AUTHOR
 
 
 class IsEditor(BasePermission):
     def has_permission(self, request, view):
-        authorization = request.headers.get('Authorization')
-        user = get_user_from_token(authorization) if authorization else AnonymousUser
-        return False if user.is_anonymous else user.role == User.Role.EDITOR
+        user = request.user
+        return user.is_anonymous or user.role == User.Role.EDITOR

@@ -1,16 +1,17 @@
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import check_password
+from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 
 from rest_framework import exceptions
-from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated, PermissionDenied, ValidationError
+from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated, PermissionDenied
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken, BlacklistMixin, AccessToken
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.decorators import authentication_classes, api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from .serializers import SignupSerializer, UserSerializer, PasswordResetSerializer
 from django.db import IntegrityError
 from .utils import get_tokens_for_user
@@ -37,19 +38,23 @@ class SignupView(APIView):
                         status=status.HTTP_400_BAD_REQUEST)
 
 
-class LogoutView(APIView, BlacklistMixin, AccessToken):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
-
+class LogoutView(APIView):
     def post(self, request, *args, **kwargs):
         try:
-            refresh_token = request.data["refresh"]
+            refresh_token = request.COOKIES.get('refresh')
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response(data={'status': 'success', 'message': 'Successfully logged out.'},
-                            status=status.HTTP_200_OK)
-        except TokenError:
-            raise NotAuthenticated("Only logged in users can perform this action.")
+        except Exception:
+            pass
+
+        response = Response({
+            'status': 'success',
+            'message': 'Successfully logged out.'
+        }, status=status.HTTP_200_OK)
+
+        response.delete_cookie('access')
+        response.delete_cookie('refresh')
+        return response
 
 
 class LoginView(APIView):
@@ -59,21 +64,47 @@ class LoginView(APIView):
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
+
         if not email or not password:
-            raise exceptions.AuthenticationFailed('username and password required')
+            raise exceptions.AuthenticationFailed('Username and password required')
 
         user = authenticate(request, email=email, password=password)
+
         if user:
-            refresh, access = get_tokens_for_user(user)
-            user = UserSerializer(user).data
-        else:
-            raise exceptions.AuthenticationFailed("Email and password mismatch.")
-        return Response({
-            'access': access,
-            'refresh': refresh,
-            'user': user,
-            'status': status.HTTP_200_OK
-        })
+            refresh = RefreshToken.for_user(user)
+            access = str(refresh.access_token)
+
+            response = Response({
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                },
+                'status': status.HTTP_200_OK,
+            }, status=status.HTTP_200_OK)
+
+            response.set_cookie(
+                key='access',
+                value=str(access),
+                httponly=True,
+                secure=True,
+                samesite='Lax',
+                max_age=60 * 60 * 24 * 7,
+                path='/'
+            )
+            response.set_cookie(
+                key='refresh',
+                value=str(refresh),
+                httponly=True,
+                secure=settings.DEBUG,
+                samesite='Lax',
+                max_age=60 * 60 * 24 * 7,
+                path='/'
+            )
+            return response
+
+        raise exceptions.AuthenticationFailed("Invalid credentials")
 
 
 class PasswordForgotView(APIView):
@@ -81,7 +112,6 @@ class PasswordForgotView(APIView):
 
 
 class PasswordResetView(APIView):
-    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -100,12 +130,34 @@ class PasswordResetView(APIView):
 
 
 @api_view(['GET'])
-@authentication_classes([JWTAuthentication])
 @permission_classes([AllowAny])
+@authentication_classes([])
 def get_current_user(request):
     if request.user.is_authenticated:
-        return Response({
-            "user_id": request.user.id,
-            "user_role": request.user.role
-        })
-    raise NotAuthenticated()
+        print(request.user)
+        return Response(UserSerializer(request.user).data)
+
+    refresh_token = request.COOKIES.get('refresh')
+    if not refresh_token:
+        raise NotAuthenticated()
+
+    try:
+        refresh = RefreshToken(refresh_token)
+        user_id = refresh.payload.get('user_id')
+        user = User.objects.get(id=user_id)
+
+        new_access_token = str(refresh.access_token)
+
+        response = Response(UserSerializer(user).data)
+        response.set_cookie(
+            'access',
+            new_access_token,
+            httponly=True,
+            secure=True,  # Set to True in production (HTTPS)
+            samesite='Lax',
+            max_age=60 * 15,  # 15 minutes (match access token expiry)
+        )
+        return response
+
+    except (TokenError, User.DoesNotExist):
+        raise NotAuthenticated("You are not signed in.")

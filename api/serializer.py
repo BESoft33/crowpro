@@ -32,7 +32,7 @@ class UserSerializer(DynamicFieldsModelSerializer):
 
 class BaseContentSerializer(DynamicFieldsModelSerializer):
     created_by = UserSerializer(read_only=True, fields=('email', 'first_name', 'last_name'))
-    # approved_by = UserSerializer(read_only=True, fields=('email', 'first_name', 'last_name'))
+    authors = UserSerializer(many=True, read_only=True, fields=('email', 'first_name', 'last_name'))
     thumbnail_url = serializers.SerializerMethodField()
 
     def get_thumbnail_url(self, obj):
@@ -42,19 +42,18 @@ class BaseContentSerializer(DynamicFieldsModelSerializer):
 
 
 class ArticleSerializer(BaseContentSerializer):
-    created_by = UserSerializer(read_only=True, fields=('email', 'first_name', 'last_name'))
-    # approved_by = UserSerializer(fields=('email', 'first_name', 'last_name'))
-
     class Meta:
         model = Article
         fields = [
             'id', 'slug', 'title', 'content', 'thumbnail_url',
-            'created_by', 'created_on', 'updated_on', 'published',
-            'published_on', 'approved_by', 'approved_on', 'hide'
+            'created_by', 'authors', 'created_on', 'updated_on',
+            'published', 'published_on', 'approved_by', 'approved_on',
+            'hide', 'publication_type', 'thumbnail',
         ]
         read_only_fields = [
             'id', 'slug', 'created_on', 'updated_on', 'approved_on',
-            'thumbnail_url', 'published_on', 'hide', 'approved_by'
+            'thumbnail_url', 'published_on', 'hide', 'approved_by',
+            'publication_type', 'authors'
         ]
         extra_kwargs = {
             'thumbnail': {'write_only': True},
@@ -68,18 +67,16 @@ class ArticleSerializer(BaseContentSerializer):
 
 
 class EditorialSerializer(BaseContentSerializer):
-    created_by = UserSerializer(read_only=True, fields=('email',))
-
     class Meta:
         model = Editorial
         fields = [
-            'id', 'slug', 'title', 'content', 'thumbnail_url',
-            'created_by', 'created_on', 'updated_on', 'published',
-            'published_on', 'hide'
+            'id', 'slug', 'title', 'content', 'thumbnail', 'thumbnail_url',
+            'created_by', 'authors', 'created_on', 'updated_on',
+            'published', 'published_on', 'hide', 'publication_type',
         ]
         read_only_fields = [
             'id', 'slug', 'created_on', 'updated_on',
-            'thumbnail_url', 'published_on', 'hide'
+            'thumbnail_url', 'published_on', 'hide', 'authors'
         ]
         extra_kwargs = {
             'thumbnail': {'write_only': True},
@@ -93,12 +90,12 @@ class PublicationApproveSerializer(BaseContentSerializer):
         fields = [
             'id', 'slug', 'title', 'content', 'thumbnail_url',
             'created_by', 'created_on', 'updated_on', 'published',
-            'published_on', 'hide', 'approved_by', 'approved_on'
+            'published_on', 'hide', 'approved_by', 'approved_on', 'publication_type',
         ]
         read_only_fields = [
             'id', 'slug', 'title', 'content', 'thumbnail_url',
             'created_by', 'created_on', 'updated_on', 'published',
-            'published_on', 'hide',
+            'published_on', 'hide', 'publication_type',
         ]
 
 

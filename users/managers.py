@@ -51,7 +51,7 @@ class AuthorManager(models.UserManager):
 
 class ModeratorManager(models.UserManager):
     def get_queryset(self) -> QuerySet:
-        return super().get_queryset().filter(Q(is_staff=True) | Q(user_models.User.Role.MODERATOR))
+        return super().get_queryset().filter(user_models.User.Role.MODERATOR, is_active=True)
 
 
 class AdminManager(models.UserManager):

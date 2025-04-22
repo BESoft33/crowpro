@@ -1,10 +1,16 @@
 from django.db import models
-from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.auth.models import AbstractUser
-from .managers import (UserManager, AuthorManager, EditorManager, ModeratorManager, AdminManager, ReaderManager)
+from .managers import (
+    UserManager,
+    AuthorManager,
+    EditorManager,
+    ModeratorManager,
+    AdminManager,
+    ReaderManager
+)
 from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError
+
 
 # User Activities
 CREATE, READ, UPDATE, DELETE = "Create", "Read", "Update", "Delete"
@@ -31,8 +37,7 @@ class User(AbstractUser):
         ADMIN = 4, _("Admin")
         READER = 5, _("Reader")
 
-    username = None  # To avoid errors because the django team decided to keep default username field required even
-    # if I set USERNAME_FIELD to email.
+    username = None
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     display_name = models.CharField(max_length=255, blank=True, null=True)
@@ -54,31 +59,6 @@ class User(AbstractUser):
 
     def get_display_name(self):
         return self.display_name if self.display_name else self.first_name
-
-    class Meta:
-        permissions = [('can_view_article', 'Can read an Article')]
-
-
-UserModel = get_user_model()
-
-
-class ActivityLog(models.Model):
-    actor = models.ForeignKey(UserModel, on_delete=models.CASCADE, null=True)
-    action_type = models.CharField(choices=ACTION_TYPES, max_length=15)
-    action_time = models.DateTimeField(auto_now_add=True)
-    remarks = models.TextField(blank=True, null=True)
-    status = models.CharField(choices=ACTION_STATUS, max_length=7, default=SUCCESS)
-    data = models.JSONField(default=dict)
-
-    # for generic relations
-    content_type = models.ForeignKey(
-        ContentType, models.SET_NULL, blank=True, null=True
-    )
-    object_id = models.PositiveIntegerField(blank=True, null=True)
-    content_object = GenericForeignKey()
-
-    def __str__(self) -> str:
-        return f"{self.action_type} by {self.actor} on {self.action_time}"
 
 
 class Author(User):

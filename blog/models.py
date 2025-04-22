@@ -2,11 +2,12 @@ from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.utils.text import slugify
 from django.utils.text import gettext_lazy as _
+from django.core.exceptions import ValidationError
 
 from django_ckeditor_5.fields import CKEditor5Field
 
 from blog.managers import ArticleManager, EditorialManager
-from users.models import Author, Editor
+from users.models import Author, Editor, User
 
 
 class Publication(models.Model):
@@ -23,7 +24,8 @@ class Publication(models.Model):
     hide = models.BooleanField(default=False)
     published = models.BooleanField(default=False)
     slug = models.SlugField(max_length=128, unique=True, blank=True, null=True)
-    created_by = models.ForeignKey(to=Author, on_delete=models.DO_NOTHING, related_name='author')
+    authors = models.ManyToManyField(User, through='PublicationAuthor', related_name='publications')
+    created_by = models.ForeignKey(Editor, on_delete=models.DO_NOTHING, related_name='author')
     approved_by = models.ForeignKey(to=Editor, on_delete=models.DO_NOTHING, null=True, blank=True,
                                     related_name='approved_by')
     approved_on = models.DateTimeField(null=True, blank=True)
@@ -39,6 +41,23 @@ class Publication(models.Model):
         else:
             self.slug = slugify(self.title)
             super().save(*args, **kwargs)
+
+    def clean(self):
+        if self.created_by.role not in [User.Role.EDITOR, User.Role.AUTHOR]:
+            raise PermissionError()
+
+
+class PublicationAuthor(models.Model):
+    publication = models.ForeignKey('Publication', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def clean(self):
+        if self.user.role not in [User.Role.EDITOR, User.Role.AUTHOR]:
+            raise ValidationError("Only Authors and Editors are allowed.")
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
 
 class Article(Publication):

@@ -34,5 +34,3 @@ admin.site.register(Moderator, ModeratorAdmin)
 admin.site.register(Reader, ReaderAdmin)
 admin.site.register(Admin, Administrator)
 admin.site.register(User)
-
-admin.site.register(ActivityLog)
