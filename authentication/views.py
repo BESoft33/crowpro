@@ -97,7 +97,7 @@ class LoginView(APIView):
                 key='refresh',
                 value=str(refresh),
                 httponly=True,
-                secure=settings.DEBUG,
+                secure=True,
                 samesite='none',
                 max_age=60 * 60 * 24 * 7,
                 path='/'
