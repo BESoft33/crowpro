@@ -89,7 +89,7 @@ class LoginView(APIView):
                 value=str(access),
                 httponly=True,
                 secure=True,
-                samesite='Lax',
+                samesite='none',
                 max_age=60 * 60 * 24 * 7,
                 path='/'
             )
@@ -98,7 +98,7 @@ class LoginView(APIView):
                 value=str(refresh),
                 httponly=True,
                 secure=settings.DEBUG,
-                samesite='Lax',
+                samesite='none',
                 max_age=60 * 60 * 24 * 7,
                 path='/'
             )
@@ -154,7 +154,7 @@ def get_current_user(request):
             new_access_token,
             httponly=True,
             secure=True,  # Set to True in production (HTTPS)
-            samesite='Lax',
+            samesite='none',
             max_age=60 * 15,  # 15 minutes (match access token expiry)
         )
         return response
