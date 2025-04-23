@@ -90,7 +90,7 @@ class LoginView(APIView):
                 httponly=True,
                 secure=True,
                 samesite='none',
-                max_age=60 * 60 * 24 * 7,
+                max_age=60 * 15,  # 15 minutes until access token expire
                 path='/'
             )
             response.set_cookie(
@@ -99,7 +99,7 @@ class LoginView(APIView):
                 httponly=True,
                 secure=True,
                 samesite='none',
-                max_age=60 * 60 * 24 * 7,
+                max_age=60 * 60 * 24 * 30,  # 30 days until refresh token expire
                 path='/'
             )
             return response
@@ -134,7 +134,6 @@ class PasswordResetView(APIView):
 @authentication_classes([])
 def get_current_user(request):
     if request.user.is_authenticated:
-        print(request.user)
         return Response(UserSerializer(request.user).data)
 
     refresh_token = request.COOKIES.get('refresh')
@@ -153,9 +152,9 @@ def get_current_user(request):
             'access',
             new_access_token,
             httponly=True,
-            secure=True,  # Set to True in production (HTTPS)
-            samesite='none',
-            max_age=60 * 15,  # 15 minutes (match access token expiry)
+            secure=True,  # allow only HTTPS
+            samesite='none',  # for cross-site cookie access
+            max_age=60 * 15,  # 15 minutes until access token expires(match access token expiry)
         )
         return response
 

@@ -9,7 +9,7 @@ SECRET_KEY = "".join(random.choices(string.ascii_letters +
                                     string.digits,
                                     k=20))
 
-ALLOWED_HOSTS = ['.vercel.app', 'now.sh', '127.0.0.1']
+ALLOWED_HOSTS = ['.vercel.app', 'now.sh', '127.0.0.1', 'santosh-bhattarai.com.np']
 
 # DATABASES = {
 #     'default': {
@@ -26,21 +26,21 @@ DATABASES = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "https://crowcrows-web-besoft33s-projects.vercel.app",
+    "https://api.santosh-bhattarai.com.np",
     "https://www.santosh-bhattarai.com.np",
     "https://santosh-bhattarai.com.np",
     "http://127.0.0.1:3000"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://crowcrows-web-besoft33s-projects.vercel.app",
+    "https://api.santosh-bhattarai.com.np",
     "https://www.santosh-bhattarai.com.np",
     "https://santosh-bhattarai.com.np",
     "http://127.0.0.1:3000"
 ]
 
 CORS_ORIGINS_WHITELIST = [
-    "https://crowcrows-web-besoft33s-projects.vercel.app",
+    "https://api.santosh-bhattarai.com.np",
     "https://www.santosh-bhattarai.com.np",
     "https://santosh-bhattarai.com.np",
     "http://127.0.0.1:3000"
