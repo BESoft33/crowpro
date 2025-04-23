@@ -133,30 +133,43 @@ class PasswordResetView(APIView):
 @permission_classes([AllowAny])
 @authentication_classes([])
 def get_current_user(request):
-    if request.user.is_authenticated:
-        return Response(UserSerializer(request.user).data)
-
+    access_token = request.COOKIES.get('access')
     refresh_token = request.COOKIES.get('refresh')
-    if not refresh_token:
-        raise NotAuthenticated()
 
-    try:
-        refresh = RefreshToken(refresh_token)
-        user_id = refresh.payload.get('user_id')
-        user = User.objects.get(id=user_id)
+    if access_token:
+        try:
+            access = AccessToken(access_token)
+            user_id = access.get('user_id')
+            user = User.objects.get(id=user_id)
+            return Response(UserSerializer(user).data)
+        except TokenError:
+            pass  # Token invalid or expired, continue to refresh flow
+        except User.DoesNotExist:
+            raise NotAuthenticated("User not found.")
 
-        new_access_token = str(refresh.access_token)
+    # Access token is not found or invalid, regenerate a new access token
+    if refresh_token:
+        try:
+            refresh = RefreshToken(refresh_token)
+            user_id = refresh.get('user_id')
+            user = User.objects.get(id=user_id)
 
-        response = Response(UserSerializer(user).data)
-        response.set_cookie(
-            'access',
-            new_access_token,
-            httponly=True,
-            secure=True,  # allow only HTTPS
-            samesite='none',  # for cross-site cookie access
-            max_age=60 * 15,  # 15 minutes until access token expires(match access token expiry)
-        )
-        return response
+            new_access_token = str(refresh.access_token)
 
-    except (TokenError, User.DoesNotExist):
-        raise NotAuthenticated("You are not signed in.")
+            response = Response(UserSerializer(user).data)
+            response.set_cookie(
+                'access',
+                new_access_token,
+                httponly=True,
+                secure=True,
+                samesite='None',
+                max_age=60 * 15,
+            )
+            return response
+        except TokenError:
+            raise NotAuthenticated("Invalid token.")
+        except User.DoesNotExist:
+            raise NotAuthenticated("Invalid user.")
+
+    # Token verification failed
+    raise NotAuthenticated("You are not signed in.")
