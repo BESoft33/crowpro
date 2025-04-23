@@ -9,7 +9,7 @@ SECRET_KEY = "".join(random.choices(string.ascii_letters +
                                     string.digits,
                                     k=20))
 
-ALLOWED_HOSTS = ['.vercel.app', 'now.sh', '127.0.0.1', 'santosh-bhattarai.com.np']
+ALLOWED_HOSTS = ['.vercel.app', 'now.sh', '127.0.0.1', '.santosh-bhattarai.com.np']
 
 # DATABASES = {
 #     'default': {
