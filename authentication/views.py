@@ -143,7 +143,7 @@ def get_current_user(request):
             user = User.objects.get(id=user_id)
             return Response(UserSerializer(user).data)
         except TokenError:
-            pass  # Token invalid or expired, continue to refresh flow
+            pass
         except User.DoesNotExist:
             raise NotAuthenticated("User not found.")
 
@@ -162,14 +162,24 @@ def get_current_user(request):
                 new_access_token,
                 httponly=True,
                 secure=True,
-                samesite='None',
+                samesite=None,
                 max_age=60 * 15,
+                path='/'
+            )
+
+            response.set_cookie(
+                'refresh',
+                refresh,
+                httponly=True,
+                secure=True,
+                max_age=60*60*24*30,
+                path='/',
             )
             return response
         except TokenError:
             raise NotAuthenticated("Invalid token.")
         except User.DoesNotExist:
-            raise NotAuthenticated("Invalid user.")
+            raise NotAuthenticated("User not found.")
 
     # Token verification failed
     raise NotAuthenticated("You are not signed in.")
