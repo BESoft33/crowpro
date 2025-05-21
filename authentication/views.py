@@ -1,20 +1,17 @@
 from django.contrib.auth import authenticate, get_user_model
-from django.contrib.auth.hashers import check_password
-from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
 
 from rest_framework import exceptions
+from rest_framework.decorators import permission_classes, api_view
 from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated, PermissionDenied
-from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken, BlacklistMixin, AccessToken
+from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from .serializers import SignupSerializer, UserSerializer, PasswordResetSerializer
+from .serializers import SignupSerializer, PasswordResetSerializer
 from django.db import IntegrityError
-from .utils import get_tokens_for_user
 
 User = get_user_model()
 
@@ -52,8 +49,18 @@ class LogoutView(APIView):
             'message': 'Successfully logged out.'
         }, status=status.HTTP_200_OK)
 
-        response.delete_cookie('access')
-        response.delete_cookie('refresh')
+        response.delete_cookie(
+            key='refresh',
+            path='/',
+            domain=None,
+            samesite='None',
+        )
+        response.delete_cookie(
+            key='access',
+            path='/',
+            domain=None,
+            samesite='None',
+        )
         return response
 
 
@@ -90,7 +97,7 @@ class LoginView(APIView):
                 httponly=True,
                 secure=True,
                 samesite='none',
-                max_age=60 * 15,  # 15 minutes until access token expire
+                max_age= 15,  # 15 minutes until access token expire
                 path='/'
             )
             response.set_cookie(
@@ -129,57 +136,47 @@ class PasswordResetView(APIView):
             raise PermissionDenied()
 
 
-@api_view(['GET'])
-@permission_classes([AllowAny])
-@authentication_classes([])
-def get_current_user(request):
-    access_token = request.COOKIES.get('access')
-    refresh_token = request.COOKIES.get('refresh')
-
-    if access_token:
+class CookieTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.COOKIES.get("refresh", None)
+        serializer = self.get_serializer(data={"refresh": refresh_token})
         try:
-            access = AccessToken(access_token)
-            user_id = access.get('user_id')
-            user = User.objects.get(id=user_id)
-            return Response(UserSerializer(user).data)
-        except TokenError:
-            pass
-        except User.DoesNotExist:
-            raise NotAuthenticated("User not found.")
+            serializer.is_valid(raise_exception=True)
+            access = serializer.validated_data.get("access")
+            refresh = serializer.validated_data.get("refresh")
+            response = Response(serializer.validated_data)
 
-    # Access token is not found or invalid, regenerate a new access token
-    if refresh_token:
-        try:
-            refresh = RefreshToken(refresh_token)
-            user_id = refresh.get('user_id')
-            user = User.objects.get(id=user_id)
-
-            new_access_token = str(refresh.access_token)
-
-            response = Response(UserSerializer(user).data)
             response.set_cookie(
-                'access',
-                new_access_token,
+                key='access',
+                value=str(access),
                 httponly=True,
                 secure=True,
-                samesite=None,
-                max_age=60 * 15,
+                samesite='none',
+                max_age=60 * 15,  # 15 minutes until expiry
                 path='/'
             )
 
             response.set_cookie(
-                'refresh',
-                refresh,
+                key='refresh',
+                value=str(refresh),
                 httponly=True,
                 secure=True,
-                max_age=60*60*24*30,
-                path='/',
+                samesite='none',
+                max_age=60 * 60 * 24 * 30,  # 30 days
+                path='/'
             )
             return response
-        except TokenError:
-            raise NotAuthenticated("Invalid token.")
-        except User.DoesNotExist:
-            raise NotAuthenticated("User not found.")
+        except TokenError as e:
+            raise InvalidToken(e.args[0])
 
-    # Token verification failed
-    raise NotAuthenticated("You are not signed in.")
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def authenticated_user(request):
+    user = request.user
+    return Response({
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "role": user.role
+    }, status=status.HTTP_200_OK)
