@@ -174,7 +174,7 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     "TOKEN_BLACKLIST_ENABLED": True,
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
@@ -183,7 +183,7 @@ SIMPLE_JWT = {
 
 REST_AUTH = {
     "USE_JWT": True,
-    "JWT_AUTH_HTTPONLY": False
+    "JWT_AUTH_HTTPONLY": True
 }
 
 AUTH_PASSWORD_VALIDATORS = [
