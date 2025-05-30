@@ -13,6 +13,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializers import SignupSerializer, PasswordResetSerializer
 from django.db import IntegrityError
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 User = get_user_model()
 
 
@@ -97,7 +101,7 @@ class LoginView(APIView):
                 httponly=True,
                 secure=True,
                 samesite='none',
-                max_age= 15,  # 15 minutes until access token expire
+                max_age=float(os.getenv("ACCESS_TOKEN_LIFETIME")),
                 path='/'
             )
             response.set_cookie(
@@ -106,7 +110,7 @@ class LoginView(APIView):
                 httponly=True,
                 secure=True,
                 samesite='none',
-                max_age=60 * 60 * 24 * 30,  # 30 days until refresh token expire
+                max_age=float(os.getenv("REFRESH_TOKEN_LIFETIME")),
                 path='/'
             )
             return response
@@ -152,7 +156,7 @@ class CookieTokenRefreshView(TokenRefreshView):
                 httponly=True,
                 secure=True,
                 samesite='none',
-                max_age=60 * 15,  # 15 minutes until expiry
+                max_age=float(os.getenv("ACCESS_TOKEN_LIFETIME")),
                 path='/'
             )
 
@@ -162,7 +166,7 @@ class CookieTokenRefreshView(TokenRefreshView):
                 httponly=True,
                 secure=True,
                 samesite='none',
-                max_age=60 * 60 * 24 * 30,  # 30 days
+                max_age=float(os.getenv("REFRESH_TOKEN_LIFETIME")),
                 path='/'
             )
             return response
