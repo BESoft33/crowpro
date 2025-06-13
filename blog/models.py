@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django_ckeditor_5.fields import CKEditor5Field
 
 from blog.managers import ArticleManager, EditorialManager
-from users.models import Author, Editor, User
+from users.models import Author, Editor, User, Writer
 
 
 class Publication(models.Model):
@@ -24,8 +24,8 @@ class Publication(models.Model):
     hide = models.BooleanField(default=False)
     published = models.BooleanField(default=False)
     slug = models.SlugField(max_length=128, unique=True, blank=True, null=True)
-    authors = models.ManyToManyField(User, through='PublicationAuthor', related_name='publications')
-    created_by = models.ForeignKey(Editor, on_delete=models.DO_NOTHING, related_name='author')
+    authors = models.ManyToManyField(Writer, through='PublicationAuthor', related_name='publications')
+    created_by = models.ForeignKey(Writer, on_delete=models.DO_NOTHING, related_name='author')
     approved_by = models.ForeignKey(to=Editor, on_delete=models.DO_NOTHING, null=True, blank=True,
                                     related_name='approved_by')
     approved_on = models.DateTimeField(null=True, blank=True)
@@ -49,11 +49,7 @@ class Publication(models.Model):
 
 class PublicationAuthor(models.Model):
     publication = models.ForeignKey('Publication', on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    def clean(self):
-        if self.user.role not in [User.Role.EDITOR, User.Role.AUTHOR]:
-            raise ValidationError("Only Authors and Editors are allowed.")
+    user = models.ForeignKey(Writer, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -72,3 +68,16 @@ class Editorial(Publication):
 
     class Meta:
         proxy = True
+
+
+class PublicationSeries(models.Model):
+    title = models.CharField(max_length=255,)
+    created_on = models.DateField(auto_now=True)
+    updated_on = models.DateField(auto_now_add=True)
+
+
+class PublicationSeriesChapter(models.Model):
+    series = models.ForeignKey(PublicationSeries, on_delete=models.CASCADE)
+    chapter = models.ForeignKey(Publication, on_delete=models.CASCADE)
+
+

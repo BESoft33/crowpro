@@ -62,3 +62,10 @@ class AdminManager(models.UserManager):
 class ReaderManager(models.UserManager):
     def get_queryset(self) -> QuerySet:
         return super().get_queryset().filter(role=user_models.User.Role.READER, is_active=True)
+
+
+class WriterManager(models.UserManager):
+    def get_queryset(self) -> QuerySet:
+        return super().get_queryset().filter(
+            Q(role=user_models.User.Role.AUTHOR) | Q(role=user_models.User.Role.EDITOR)
+        )

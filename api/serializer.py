@@ -1,7 +1,7 @@
 from django.utils.timezone import datetime
 from rest_framework import serializers
 from users.models import User
-from blog.models import Article, Editorial, Publication
+from blog.models import Article, Editorial, Publication, PublicationAuthor
 
 
 class DynamicFieldsModelSerializer(serializers.ModelSerializer):
@@ -18,10 +18,12 @@ class DynamicFieldsModelSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(DynamicFieldsModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = [
-            'id', 'email', 'first_name', 'last_name',
+            'id', 'email', 'first_name', 'last_name', 'full_name',
             'profile_img', 'role', 'is_active', 'date_joined'
         ]
         read_only_fields = ['id', 'date_joined', 'role', ]
@@ -29,16 +31,48 @@ class UserSerializer(DynamicFieldsModelSerializer):
             'password': {'write_only': True, 'required': False},
         }
 
+    def get_full_name(self, obj):
+        return obj.get_full_name()
+
+
+class AuthorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PublicationAuthor
+
 
 class BaseContentSerializer(DynamicFieldsModelSerializer):
-    created_by = UserSerializer(read_only=True, fields=('email', 'first_name', 'last_name'))
-    authors = UserSerializer(many=True, read_only=True, fields=('email', 'first_name', 'last_name'))
+    created_by = UserSerializer(read_only=True, fields=('id', 'email', 'full_name', 'profile_img'))
+    authors = UserSerializer(many=True, read_only=True, fields=('id', 'email', 'full_name', 'profile_img'))
     thumbnail_url = serializers.SerializerMethodField()
 
     def get_thumbnail_url(self, obj):
         if obj.thumbnail:
             return self.context['request'].build_absolute_uri(obj.thumbnail.url)
         return None
+
+
+class AuthorArticleSerializer(BaseContentSerializer):
+    class Meta:
+        model = Publication
+        fields = "__all__"
+
+
+class PublicationSerializer(BaseContentSerializer):
+    class Meta:
+        model = Publication
+        fields = [
+            'id', 'slug', 'title', 'content', 'thumbnail', 'thumbnail_url',
+            'created_by', 'authors', 'created_on', 'updated_on',
+            'published', 'published_on', 'hide', 'publication_type',
+        ]
+        read_only_fields = [
+            'id', 'slug', 'created_on', 'updated_on',
+            'thumbnail_url', 'published_on', 'hide', 'authors'
+        ]
+        extra_kwargs = {
+            'thumbnail': {'write_only': True},
+            'published': {'default': False}
+        }
 
 
 class ArticleSerializer(BaseContentSerializer):

@@ -1,10 +1,12 @@
 from django.db.models import Q, Count
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status, exceptions, mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny, OR
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 from rest_framework.generics import RetrieveUpdateAPIView, ListAPIView
 
@@ -13,11 +15,32 @@ from .serializer import (
     UserSerializer,
     StatisticsSerializer,
     ArticleSerializer,
-    PublicationApproveSerializer
+    PublicationApproveSerializer, PublicationSerializer
 )
 from .permissions import IsStaff, IsEditor, IsAuthor
 from users.models import User
 from blog.models import Article, Editorial, Publication
+
+
+class AuthorArticleView(APIView):
+    def get(self, request):
+        queryset = Article.objects.filter(authors=request.user).distinct()
+        serializer = ArticleSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
+class AuthorPublicationView(APIView):
+    permission_classes = []
+
+    def get(self, request, id):
+        user = get_object_or_404(User, id=id)
+        queryset = Publication.objects.filter(
+            published=True,
+            authors=user
+        ).distinct()
+
+        serializer = PublicationSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
 
 
 class ArticleViewSet(GenericViewSet):
@@ -40,7 +63,7 @@ class ArticleViewSet(GenericViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def retrieve(self, request, *args, **kwargs):
+    def retrieve(self, request, slug=None):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -56,9 +79,9 @@ class ArticleViewSet(GenericViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
-        if instance.approved_by is None:
-            raise exceptions.ValidationError("Article must be approved before publishing.")
         if 'published' in request.data:
+            if instance.approved_by is None:
+                raise exceptions.ValidationError("Article must be approved before publishing.")
             published_on = timezone.now() if request.data['published'] else None
             serializer.save(published_on=published_on)
         else:
@@ -117,7 +140,7 @@ class EditorialViewSet(GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(created_by=request.user,
-                        authors=[request.user,],
+                        authors=[request.user, ],
                         publication_type=Publication.PublicationType.Editorial)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -169,6 +192,9 @@ class UserViewSet(GenericViewSet):
     def update(self, request, pk=None):
         user = self.get_object()
         if request.method == 'PATCH':
+            if request.user is not user:
+                raise PermissionError("You cannot update other user's info")
+
             serializer = self.get_serializer(
                 user,
                 data=request.data,

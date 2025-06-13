@@ -5,7 +5,7 @@ from .views import (
     EditorialViewSet,
     PostReadOnlyViewSet,
     StatsView,
-    UserViewSet, PublicationUpdateView,
+    UserViewSet, PublicationUpdateView, AuthorArticleView, AuthorPublicationView,
 )
 
 router = DefaultRouter()
@@ -17,5 +17,7 @@ router.register(r'users', UserViewSet, basename='user')
 urlpatterns = [
     path('', include(router.urls)),
     path('publications/<str:slug>/', PublicationUpdateView.as_view(), name='publication'),
+    path('myarticles', AuthorArticleView.as_view(), name='myarticles'),
+    path('author/<int:id>', AuthorPublicationView.as_view(), name='authorpublication'),
     path('stats/', StatsView.as_view(), name='stats'),
 ]

@@ -6,11 +6,10 @@ from .managers import (
     EditorManager,
     ModeratorManager,
     AdminManager,
-    ReaderManager
+    ReaderManager, WriterManager
 )
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
-
 
 # User Activities
 CREATE, READ, UPDATE, DELETE = "Create", "Read", "Update", "Delete"
@@ -140,6 +139,13 @@ class Admin(User):
 
 class Reader(User):
     objects = ReaderManager()
+
+    class Meta:
+        proxy = True
+
+
+class Writer(User):
+    objects = WriterManager()
 
     class Meta:
         proxy = True
