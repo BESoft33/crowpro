@@ -68,13 +68,14 @@ else:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-    STORAGES = STORAGES
     DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
     STATICFILES_STORAGE = 'storages.backends.dropbox.DropboxStorage'
 
+    STATIC_ROOT = BASE_DIR / 'staticfiles'
+
     # URL configuration for serving media files
-    MEDIA_URL = 'https://www.dropbox.com/home/media/'
-    STATIC_URL = 'https://www.dropbox.com/home/staticfiles/'
+    MEDIA_URL = '/media/'
+    STATIC_URL = '/static/'
 
 
 CK_EDITOR_5_UPLOAD_FILE_VIEW_NAME = "upload_file"

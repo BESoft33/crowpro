@@ -45,8 +45,11 @@ COPY --from=builder /usr/local/bin/ /usr/local/bin/
 # Copy project files
 COPY . .
 
+# Collect static files
+RUN python manage.py collectstatic --noinput
+
 # Expose port
-EXPOSE 8080
+EXPOSE 8000
 
 # Start gunicorn
 CMD ["gunicorn", "crowpro.wsgi:application", "--bind", "0.0.0.0:8080", "--workers", "4"]
