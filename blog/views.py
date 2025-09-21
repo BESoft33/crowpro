@@ -1,6 +1,5 @@
 import http
 
-from django.core.files.storage import get_storage_class
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.exceptions import APIException

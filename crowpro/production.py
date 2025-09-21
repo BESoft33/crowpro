@@ -49,8 +49,4 @@ CORS_ORIGINS_WHITELIST = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-STORAGES = {
-    "default": {
-        "BACKEND": "storages.backends.dropbox.DropboxStorage",
-    },
-}
+

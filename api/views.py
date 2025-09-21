@@ -50,7 +50,7 @@ class ArticleViewSet(GenericViewSet):
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             return [AllowAny()]
-        return [IsAuthor()]
+        return [AllowAny()]
 
     def get_queryset(self):
         queryset = Article.objects.all()
@@ -72,6 +72,7 @@ class ArticleViewSet(GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(created_by=request.user, authors=request.user)
+        serializer.instance.authors.set([request.user])
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def partial_update(self, request, *args, **kwargs):
@@ -138,11 +139,16 @@ class EditorialViewSet(GenericViewSet):
 
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user,
-                        authors=[request.user, ],
-                        publication_type=Publication.PublicationType.Editorial)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save(created_by=request.user,
+                            publication_type=Publication.PublicationType.Editorial)
+
+            serializer.instance.authors.set([request.user.id])
+
+            print(serializer.validated_data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     def partial_update(self, request, slug=None):
         editorial = self.get_object()

@@ -60,7 +60,7 @@ CKEDITOR_5_CONFIGS = {
                 '|',
                 'bold', 'italic', 'strikethrough', 'superscript', 'subscript', 'horizontalLine', 'specialCharacters',
                 '|'
-                'code','codeblock',
+                'code', 'codeblock',
                 '|',
                 'sourceEditing', 'htmlEmbed', 'pageBreak', 'showBlocks',
                 '|',
@@ -74,7 +74,16 @@ CKEDITOR_5_CONFIGS = {
         },
         'image': {
             'toolbar': [
-                'imageTextAlternative', 'toggleImageCaption', '|', 'imageStyle:inline', 'imageStyle:wrapText', 'imageStyle:breakText', '|', 'resizeImage'
+                'imageTextAlternative', 'toggleImageCaption', '|', 'imageStyle:inline', 'imageStyle:wrapText',
+                'imageStyle:breakText', '|', 'resizeImage', 'imageStyle:alignRight', 'imageStyle:alignCenter',
+                'imageStyle:side',
+            ],
+            'styles': [
+                'full',
+                'side',
+                'alignLeft',
+                'alignRight',
+                'alignCenter',
             ],
             'resizeOptions': [
                 {'name': 'resizeImage:original', 'label': 'Default image width', 'value': None},
@@ -86,21 +95,15 @@ CKEDITOR_5_CONFIGS = {
             ],
         },
         'table': {
-            'contentToolbar': ['toggleTableCaption', 'tableColumn', 'tableRow', 'mergeTableCells', 'tableCellProperties', 'tableProperties'],
-        },
-        'table': {
-            'contentToolbar': ['tableColumn', 'tableRow', 'mergeTableCells',
+            'contentToolbar': ['tableColumn', 'tableRow', 'toggleTableCaption', 'mergeTableCells',
                                'tableProperties', 'tableCellProperties'],
         },
         'heading': {
             'options': [
-                    # { model: 'paragraph', title: 'Paragraph'},
-                    # { model: 'heading1', view: 'h1', title: 'Heading 1'},
-                    # { model: 'heading2', view: 'h2', title: 'Heading 2'},
-                    # { model: 'heading3', view: 'h3', title: 'Heading 3'},
-                    # { model: 'heading4', view: 'h4', title: 'Heading 4'},
-                    # { model: 'heading5', view: 'h5', title: 'Heading 5'},
-                    # { model: 'heading6', view: 'h6', title: 'Heading 6'},
+                {'model': 'paragraph', 'title': 'Paragraph', 'class': 'ck-heading_paragraph'},
+                {'model': 'heading1', 'view': 'h1', 'title': 'Heading 1', 'class': 'ck-heading_heading1'},
+                {'model': 'heading2', 'view': 'h2', 'title': 'Heading 2', 'class': 'ck-heading_heading2'},
+                {'model': 'heading3', 'view': 'h3', 'title': 'Heading 3', 'class': 'ck-heading_heading3'}
             ]
         }
     },

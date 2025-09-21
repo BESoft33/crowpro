@@ -50,12 +50,7 @@ if DEBUG:
 
     ]
 
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+    DATABASES = DATABASES
 
     STATIC_URL = 'static/'
     MEDIA_URL = 'media/'
@@ -100,12 +95,12 @@ CORS_ALLOW_HEADERS = [
 CORS_ALLOW_CREDENTIALS = True
 
 INSTALLED_APPS = [
+    'admincharts',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     'users',
     'api',
@@ -122,8 +117,6 @@ INSTALLED_APPS = [
     'storages',
     'drf_yasg',
     'django_user_agents',
-    'admincharts',
-
 ]
 
 MIDDLEWARE = [
@@ -137,7 +130,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'logs.middleware.RequestLoggingMiddleware',
-
 ]
 
 ROOT_URLCONF = 'crowpro.urls'

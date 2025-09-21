@@ -1,28 +1,52 @@
-# Use an official Python runtime as a parent image
-FROM python:3.8
+# =========================
+# 1. Builder stage
+# =========================
+FROM python:3.13-slim AS builder
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Set the working directory in the container
-WORKDIR /usr/src/crowcrows
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy entrypoint and requirements first (to leverage Docker cache)
-COPY ./entrypoint.sh ./entrypoint.sh
-COPY ./requirements.txt ./requirements.txt
+# Create app directory
+WORKDIR /app
 
-# Copy the rest of the application
-COPY . .
+# Install dependencies
+COPY requirements.txt .
 
-# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Make entrypoint executable
-RUN chmod +x ./entrypoint.sh
+# =========================
+# 2. Final stage
+# =========================
+FROM python:3.13-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Create app directory
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the Python dependencies from the builder stage
+COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
+
+# Copy project files
+COPY . .
 
 # Expose port
 EXPOSE 8000
 
-# Run entrypoint
-#ENTRYPOINT ["./entrypoint.sh"]
+# Start gunicorn
+CMD ["gunicorn", "crowpro.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4"]
