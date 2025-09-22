@@ -8,8 +8,7 @@ load_dotenv()
 SECRET_KEY = "".join(random.choices(string.ascii_letters +
                                     string.digits,
                                     k=20))
-
-ALLOWED_HOSTS = ['.vercel.app', 'now.sh', '138.68.137.234', '.santosh-bhattarai.com.np']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
 
 # DATABASES = {
 #     'default': {
@@ -26,26 +25,10 @@ DATABASES = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "https://api.santosh-bhattarai.com.np",
-    "https://www.santosh-bhattarai.com.np",
+    "138.68.137.234",
     "https://santosh-bhattarai.com.np",
-    "http://127.0.0.1:3000"
 ]
-
-CSRF_TRUSTED_ORIGINS = [
-    "https://api.santosh-bhattarai.com.np",
-    "https://www.santosh-bhattarai.com.np",
-    "https://santosh-bhattarai.com.np",
-    "http://127.0.0.1:3000"
-]
-
-CORS_ORIGINS_WHITELIST = [
-    "https://api.santosh-bhattarai.com.np",
-    "https://www.santosh-bhattarai.com.np",
-    "https://santosh-bhattarai.com.np",
-    "http://127.0.0.1:3000"
-
-]
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
 
 CORS_ALLOW_CREDENTIALS = True
 
