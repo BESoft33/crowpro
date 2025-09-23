@@ -40,7 +40,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('blog/', include('blog.urls')),
     path('auth/', include('authentication.urls')),
-    path('', include('api.urls')),
+    path('api/', include('api.urls')),
 ]
 
 if settings.DEBUG:
