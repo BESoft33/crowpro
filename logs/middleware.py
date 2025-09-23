@@ -41,13 +41,6 @@ class RequestLoggingMiddleware:
         except Exception:
             pass
 
-        body = ''
-        if method in ['POST', 'PUT', 'PATCH']:
-            try:
-                body = request.body.decode('utf-8')
-            except Exception:
-                body = '<unreadable body>'
-
         # Get user if authenticated
         user = request.user if request.user.is_authenticated else None
 
@@ -61,7 +54,6 @@ class RequestLoggingMiddleware:
             method=method,
             path=path,
             headers=headers,
-            body=body,
             remote_addr=remote_addr,
             referrer=referrer,
             user_agent=user_agent_str,

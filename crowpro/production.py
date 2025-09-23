@@ -21,4 +21,21 @@ CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
 
 CORS_ALLOW_CREDENTIALS = True
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False
+SESSION_COOKIE_DOMAIN = SESSION_COOKIE_DOMAIN
+CSRF_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
+
+DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
+STATICFILES_STORAGE = 'storages.backends.dropbox.DropboxStorage'
+
+
+# URL configuration for serving media files
+MEDIA_URL = '/media/'
+STATIC_URL = '/static/'
 
