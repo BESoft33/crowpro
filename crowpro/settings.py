@@ -64,8 +64,13 @@ else:
     CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS
     SESSION_COOKIE_SAMESITE = 'None'
     CSRF_COOKIE_SAMESITE = 'None'
-    SESSION_COOKIE_SECURE = True
+
+    # Tell Django to trust the X-Forwarded-Proto header from Nginx
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+    # Ensure your CSRF cookies work over HTTPS
     CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
 
     DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
     STATICFILES_STORAGE = 'storages.backends.dropbox.DropboxStorage'
