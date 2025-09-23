@@ -62,15 +62,18 @@ else:
     DATABASES = DATABASES
     CORS_ALLOWED_ORIGINS = CORS_ALLOWED_ORIGINS
     CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS
-    SESSION_COOKIE_SAMESITE = 'None'
-    CSRF_COOKIE_SAMESITE = 'None'
 
-    # Tell Django to trust the X-Forwarded-Proto header from Nginx
+    CORS_ALLOW_CREDENTIALS = True
+
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
 
-    # Ensure your CSRF cookies work over HTTPS
-    CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_HTTPONLY = False
+    SESSION_COOKIE_DOMAIN = SESSION_COOKIE_DOMAIN
+    CSRF_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
 
     DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
     STATICFILES_STORAGE = 'storages.backends.dropbox.DropboxStorage'
@@ -87,16 +90,6 @@ CKEDITOR_5_CONFIGS = ck.CKEDITOR_5_CONFIGS
 CKEDITOR_5_FILE_UPLOAD_PERMISSION = ck.CKEDITOR_5_FILE_UPLOAD_PERMISSION
 CKEDITOR_5_FILE_STORAGES = ck.STORAGES
 
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-]
 CORS_ALLOW_CREDENTIALS = True
 
 INSTALLED_APPS = [
