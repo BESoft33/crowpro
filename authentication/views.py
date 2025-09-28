@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, get_user_model
 
 from rest_framework import exceptions
-from rest_framework.decorators import permission_classes, api_view
+from rest_framework.decorators import permission_classes, api_view, authentication_classes
 from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated, PermissionDenied
 from rest_framework_simplejwt.tokens import RefreshToken, BlacklistMixin, AccessToken
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -15,7 +15,9 @@ from django.db import IntegrityError
 
 import os
 from dotenv import load_dotenv
+import logging
 
+logger = logging.getLogger("authentication")
 load_dotenv()
 User = get_user_model()
 
@@ -86,12 +88,7 @@ class LoginView(APIView):
             access = str(refresh.access_token)
 
             response = Response({
-                'user': {
-                    'id': user.id,
-                    'email': user.email,
-                    'first_name': user.first_name,
-                    'last_name': user.last_name,
-                },
+                'success': True,
                 'status': status.HTTP_200_OK,
             }, status=status.HTTP_200_OK)
 
@@ -174,13 +171,26 @@ class CookieTokenRefreshView(TokenRefreshView):
             raise InvalidToken(e.args[0])
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def authenticated_user(request):
-    user = request.user
-    return Response({
-        "id": user.id,
-        "username": user.username,
-        "email": user.email,
-        "role": user.role
-    }, status=status.HTTP_200_OK)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@authentication_classes([])
+def token_verify(request):
+    access_token = request.data.get("access")
+    if not access_token:
+        return Response(
+            {"detail": "Authentication credentials were not provided."},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    try:
+        token = AccessToken(access_token)
+        user_id = token["user_id"]
+        User.objects.get(id=user_id)
+        return Response({"valid": True}, status=status.HTTP_200_OK)
+
+    except TokenError:
+        return Response({"detail": "Invalid or expired token."}, status=status.HTTP_401_UNAUTHORIZED)
+    except User.DoesNotExist:
+        return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+
+

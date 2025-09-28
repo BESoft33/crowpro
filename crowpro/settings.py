@@ -1,10 +1,10 @@
+import sys
 from pathlib import Path
 from . import ckeditor_config as ck
 from datetime import timedelta
 import os
 import logging
 from dotenv import load_dotenv
-
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -19,16 +19,16 @@ DROPBOX_OAUTH2_REFRESH_TOKEN = os.getenv("DROPBOX_OAUTH2_REFRESH_TOKEN")
 DROPBOX_OAUTH2_TOKEN = os.getenv("DROPBOX_OAUTH2_TOKEN")
 
 DEBUG = os.getenv("DEBUG", False) == "True"
-
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATIC_URL = 'static/'
-MEDIA_URL = 'media/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = BASE_DIR
 
 if DEBUG:
     from .dev import *
+
+    logger.info("Running in development mode")
 else:
     from .production import *
+
+    logger.info("Running in production mode")
 
 CK_EDITOR_5_UPLOAD_FILE_VIEW_NAME = "upload_file"
 CKEDITOR_5_CONFIGS = ck.CKEDITOR_5_CONFIGS
@@ -149,3 +149,72 @@ AUTH_USER_MODEL = 'users.User'
 
 GEOIP_PATH = os.path.join(BASE_DIR, 'geoip')
 
+DJANGO_LOG_LEVEL = DEBUG
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,  # Keep Django's default loggers
+    'formatters': {
+        'verbose': {
+            'format': '[{levelname}] {asctime} {name}:{lineno} - {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '[{levelname}] {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+            'formatter': 'verbose',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'local.log') if DEBUG else BASE_DIR / 'server.log',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django.request': {  # HTTP errors
+            'handlers': ['console', 'file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.db.backends': {  # SQL queries
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',  # change to INFO in prod
+            'propagate': False,
+        },
+        'api': {  # your app-specific logs
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        'authentication': {  # your app-specific logs
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        'blog': {  # your app-specific logs
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        'users': {  # your app-specific logs
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+    },
+}
