@@ -4,8 +4,6 @@ import dj_database_url
 
 load_dotenv()
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-
 DATABASES = {
     "default": dj_database_url.config(default=os.getenv("DB_URL"))
 }
